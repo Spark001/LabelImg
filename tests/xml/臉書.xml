@@ -1,0 +1,26 @@
+<annotation>
+  <folder>img</folder>
+  <filename>&#33225;&#26360;</filename>
+  <path>E:\Users\ScottShen\shenzhen\seeta_win32_v1.3\labelImg-master\tests\img\&#33225;&#26360;.jpg</path>
+  <source>
+    <database>Unknown</database>
+  </source>
+  <size>
+    <width>33</width>
+    <height>32</height>
+    <depth>3</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>person</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>10</xmin>
+      <ymin>7</ymin>
+      <xmax>24</xmax>
+      <ymax>26</ymax>
+    </bndbox>
+  </object>
+</annotation>

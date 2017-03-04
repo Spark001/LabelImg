@@ -715,8 +715,9 @@ class MainWindow(QMainWindow, WindowMixin):
         if len(self.labelHist) > 0:
             self.labelDialog = LabelDialog(
                 parent=self, listItem=self.labelHist)
-
-        text = self.labelDialog.popUp(text=self.prevLabelText)
+        #2017/3/4
+        text = self.labelDialog.popUp(text=u('car'))
+        #text = self.labelDialog.popUp(text=self.prevLabelText)
         if text is not None:
             self.prevLabelText = text
             self.addLabel(self.canvas.setLastLabel(text))
