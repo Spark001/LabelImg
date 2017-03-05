@@ -38,11 +38,11 @@ class LabelDialog(QDialog):
             self.listWidget.itemDoubleClicked.connect(self.listItemClick)
             layout.addWidget(self.listWidget)
 
-        # add a shortcut to choose the first label
-        action = partial(newAction, self)
-        choose1 = action('@Choose label', self.choose,
-                         ' ', None, u'Choose label')
-        addActions(self.listWidget, (choose1,))
+            # add a shortcut to choose the first label
+            action = partial(newAction, self)
+            choose1 = action('@Choose label', self.choose,
+                             ' ', None, u'Choose label')
+            addActions(self.listWidget, (choose1,))
 
         self.setLayout(layout)
 
