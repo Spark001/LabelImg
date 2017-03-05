@@ -6,7 +6,8 @@ except ImportError:
     from PyQt4.QtGui import *
     from PyQt4.QtCore import *
 
-from lib import newIcon, labelValidator
+from lib import newIcon, labelValidator, newAction, addActions
+from functools import partial
 
 BB = QDialogButtonBox
 
@@ -27,13 +28,21 @@ class LabelDialog(QDialog):
         bb.accepted.connect(self.validate)
         bb.rejected.connect(self.reject)
         layout.addWidget(bb)
+        self.listItem = listItem[:]
 
         if listItem is not None and len(listItem) > 0:
             self.listWidget = QListWidget(self)
             for item in listItem:
+                #qDebug(item)
                 self.listWidget.addItem(item)
             self.listWidget.itemDoubleClicked.connect(self.listItemClick)
             layout.addWidget(self.listWidget)
+
+        # add a shortcut to choose the first label
+        action = partial(newAction, self)
+        choose1 = action('@Choose label', self.choose,
+                         ' ', None, u'Choose label')
+        addActions(self.listWidget, (choose1,))
 
         self.setLayout(layout)
 
@@ -69,3 +78,23 @@ class LabelDialog(QDialog):
             text = tQListWidgetItem.text().strip()
         self.edit.setText(text)
         self.validate()
+
+    def ch1(self):
+        if self.listItem is not None and len(self.listItem) > 0:
+            try:
+                text = self.listItem[0].trimmed()
+            except AttributeError:
+                # PyQt5: AttributeError: 'str' object has no attribute 'trimmed'
+                text = self.listItem[0].strip()
+            self.edit.setText(text)
+            self.validate()
+
+    def choose(self):
+        if self.listItem is not None and len(self.listItem) > 0:
+            try:
+                text = self.listWidget.currentItem().text().trimmed()
+            except AttributeError:
+                # PyQt5: AttributeError: 'str' object has no attribute 'trimmed'
+                text = self.listWidget.currentItem().text().strip()
+            self.edit.setText(text)
+            self.validate()

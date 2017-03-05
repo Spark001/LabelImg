@@ -191,6 +191,7 @@ class MainWindow(QMainWindow, WindowMixin):
 
         # Actions
         action = partial(newAction, self)
+
         quit = action('&Quit', self.close,
                       'Ctrl+Q', 'quit', u'Quit application')
 
@@ -716,8 +717,8 @@ class MainWindow(QMainWindow, WindowMixin):
             self.labelDialog = LabelDialog(
                 parent=self, listItem=self.labelHist)
         #2017/3/4
-        text = self.labelDialog.popUp(text=u('car'))
-        #text = self.labelDialog.popUp(text=self.prevLabelText)
+            #text = self.labelDialog.popUp(text=u('car'))
+        text = self.labelDialog.popUp(text=self.prevLabelText)
         if text is not None:
             self.prevLabelText = text
             self.addLabel(self.canvas.setLastLabel(text))
@@ -1158,6 +1159,9 @@ class MainWindow(QMainWindow, WindowMixin):
         shapes = tVocParseReader.getShapes()
         self.loadLabels(shapes)
 
+    def chooseCar(self):
+
+        pass
 
 class Settings(object):
     """Convenience dict-like wrapper around QSettings."""
