@@ -18,9 +18,11 @@ The annotation will be saved to the folder you specify.
 | Ctrl + s | Save                                     |
 | Ctrl + u | open dir                                 |
 | Ctrl + s | Save                                     |
+| Ctrl + d | Copy a bounding box                      |
 | w        | Create a bounding box                    |
 | d        | Next image                               |
 | a        | Previous image                           |
+| Space    | After choosing one label, quick add it   |
 
 
 ## Note£º 
