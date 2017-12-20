@@ -681,8 +681,9 @@ class MainWindow(QMainWindow, WindowMixin):
 
     def saveLabels(self, annotationFilePath):
         annotationFilePath = u(annotationFilePath)
-        lf = LabelFile()
-
+        if self.labelFile is None:
+            self.labelFile = LabelFile()
+            self.labelFile.verified = self.canvas.verified
         def format_shape(s):
             return dict(label=s.label,
                         line_color=s.line_color.getRgb()
@@ -695,14 +696,12 @@ class MainWindow(QMainWindow, WindowMixin):
         # Can add differrent annotation formats here
         try:
             if self.usingPascalVocFormat is True:
-                print ('Img: ' + self.filePath +
-                       ' -> Its xml: ' + annotationFilePath)
-                lf.savePascalVocFormat(annotationFilePath, shapes, self.filePath, self.imageData,
+                print ('Img: ' + self.filePath + ' -> Its xml: ' + annotationFilePath)
+                self.labelFile.savePascalVocFormat(annotationFilePath, shapes, self.filePath, self.imageData,
                                        self.lineColor.getRgb(), self.fillColor.getRgb())
             else:
-                lf.save(annotationFilePath, shapes, self.filePath, self.imageData,
+                self.labelFile.save(annotationFilePath, shapes, self.filePath, self.imageData,
                         self.lineColor.getRgb(), self.fillColor.getRgb())
-                self.labelFile = lf
             return True
         except LabelFileError as e:
             self.errorMessage(u'Error saving label data',
@@ -1205,7 +1204,6 @@ class MainWindow(QMainWindow, WindowMixin):
                 key = l.split(':')[0]
                 value = l.split(':')[-1].split(',')
                 self.labelHist[key] = value
-        print self.labelHist
 
     def loadPascalXMLByFilename(self, xmlPath):
         if self.filePath is None:

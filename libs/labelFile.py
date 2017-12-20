@@ -17,16 +17,15 @@ class LabelFileError(Exception):
 
 
 class LabelFile(object):
-    # It might be changed as window creates
-    suffix = '.lif'
+    # It might be changed as window creates. By default, using XML ext
+    # suffix = '.lif'
+    suffix = '.xml'
 
     def __init__(self, filename=None):
         self.shapes = ()
         self.imagePath = None
         self.imageData = None
         self.verified = False
-        if filename is not None:
-            self.load(filename)
 
     def savePascalVocFormat(self, filename, shapes, imagePath, imageData,
                             lineColor=None, fillColor=None, databaseSrc=None):
@@ -78,10 +77,10 @@ class LabelFile(object):
         # Martin Kersner, 2015/11/12
         # 0-valued coordinates of BB caused an error while
         # training faster-rcnn object detector.
-        if (xmin < 1):
+        if xmin < 1:
             xmin = 1
 
-        if (ymin < 1):
+        if ymin < 1:
             ymin = 1
 
         return (int(xmin), int(ymin), int(xmax), int(ymax))
