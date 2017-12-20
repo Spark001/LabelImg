@@ -151,7 +151,7 @@ class Canvas(QWidget):
         # - Highlight shapes
         # - Highlight vertex
         # Update shape/vertex fill and tooltip value accordingly.
-        # self.setToolTip("Image")
+        self.setToolTip("Image")
         for shape in reversed([s for s in self.shapes if self.isVisible(s)]):
             # Look for a nearby vertex to highlight. If that fails,
             # check if we happen to be inside a shape.
@@ -294,11 +294,8 @@ class Canvas(QWidget):
             return
         for shape in reversed(self.shapes):
             if self.isVisible(shape) and shape.containsPoint(point):
-                # shape.selected = True
-                self.selectedShape(shape)
+                self.selectShape(shape)
                 self.calculateOffsets(shape, point)
-                # self.setHiding()
-                # self.selectionChanged.emit(True)
                 return
 
     def calculateOffsets(self, shape, point):
@@ -655,9 +652,11 @@ class Canvas(QWidget):
         return cursor
 
     def overrideCursor(self, cursor):
-        self.restoreCursor()
         self._cursor = cursor
-        QApplication.setOverrideCursor(cursor)
+        if self.currentCursor() is None:
+            QApplication.setOverrideCursor(cursor)
+        else:
+            QApplication.changeOverrideCursor(cursor)
 
     def restoreCursor(self):
         QApplication.restoreOverrideCursor()

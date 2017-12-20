@@ -24,6 +24,7 @@ class LabelFile(object):
         self.shapes = ()
         self.imagePath = None
         self.imageData = None
+        self.verified = False
         if filename is not None:
             self.load(filename)
 
@@ -41,6 +42,8 @@ class LabelFile(object):
                       1 if image.isGrayscale() else 3]
         writer = PascalVocWriter(imgFolderName, imgFileNameWithoutExt,
                                  imageShape, localImgPath=imagePath)
+        writer.verified = self.verified
+
         for shape in shapes:
             points = shape['points']
             label = shape['label']
@@ -49,6 +52,9 @@ class LabelFile(object):
 
         writer.save(targetFile=filename)
         return
+
+    def toggleVerify(self):
+        self.verified = not self.verified
 
     @staticmethod
     def isLabelFile(filename):

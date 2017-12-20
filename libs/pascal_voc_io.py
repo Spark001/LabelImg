@@ -8,7 +8,7 @@ from lxml import etree
 import codecs
 
 XML_EXT = '.xml'
-
+ENCODING = 'utf-8'
 
 class PascalVocWriter:
 
@@ -103,12 +103,12 @@ class PascalVocWriter:
         out_file = None
         if targetFile is None:
             out_file = codecs.open(
-                self.filename + XML_EXT, 'w', encoding='utf-8')
+                self.filename + XML_EXT, 'w', encoding=ENCODING)
         else:
-            out_file = codecs.open(targetFile, 'w', encoding='utf-8')
+            out_file = codecs.open(targetFile, 'w', encoding=ENCODING)
 
         prettifyResult = self.prettify(root)
-        out_file.write(prettifyResult.decode('utf8'))
+        out_file.write(prettifyResult.decode(ENCODING))
         out_file.close()
 
 
@@ -134,7 +134,7 @@ class PascalVocReader:
 
     def parseXML(self):
         assert self.filepath.endswith('.xml'), "Unsupport file format"
-        parser = etree.XMLParser(encoding='utf-8')
+        parser = etree.XMLParser(encoding=ENCODING)
         xmltree = ElementTree.parse(self.filepath, parser=parser).getroot()
         filename = xmltree.find('filename').text
 

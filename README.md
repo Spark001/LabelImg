@@ -1,6 +1,19 @@
-#labelImg
+# labelImg
+
+Label image list by make a class label.
+
+## BUG!!!
+1. 删除一个shape之后，copy和delete按钮没有切换不可点击
+2. 当标出的框是一个点时，移动框时不可保存
 
 ## Usage
+
+### Compile
+
+Generate .py file from a .qrc file
+```
+pyrcc5 -o .py .qrc
+```
 
 ### Steps
 
