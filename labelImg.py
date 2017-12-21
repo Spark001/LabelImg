@@ -111,6 +111,8 @@ class MainWindow(QMainWindow, WindowMixin):
         self.labelHist = []
         self.lastOpenDir = None
 
+        self.time_step = 30
+
         # Whether we need to save or not.
         self.dirty = False
 
@@ -207,6 +209,9 @@ class MainWindow(QMainWindow, WindowMixin):
 
         open = action('&Open', self.openFile,
                       'Ctrl+O', 'open', u'Open image or label file')
+
+        openVideo = action('&Open Video', self.openVideo,
+                           'Ctrl+v', 'open', u'Open Video')
 
         opendir = action('&Open Dir', self.openDir,
                          'Ctrl+u', 'open', u'Open Dir')
@@ -349,7 +354,7 @@ class MainWindow(QMainWindow, WindowMixin):
             labelList=labelMenu)
 
         addActions(self.menus.file,
-                   (open, opendir, changeSavedir, openAnnotation, self.menus.recentFiles, save, saveAs, close, None,
+                   (open, openVideo, opendir, changeSavedir, openAnnotation, self.menus.recentFiles, save, saveAs, close, None,
                     quit))
         addActions(self.menus.help, (help,))
         addActions(self.menus.view, (
@@ -369,6 +374,7 @@ class MainWindow(QMainWindow, WindowMixin):
         self.tools = self.toolbar('Tools')
         self.actions.beginner = (
             # open,
+            openVideo,
             opendir, changeSavedir, openNextImg, openPrevImg,
             # verify,
             save, None, create,
@@ -981,6 +987,78 @@ class MainWindow(QMainWindow, WindowMixin):
                                                        '%s - Choose a xml file' % __appname__, path, filters))
             self.loadPascalXMLByFilename(filename)
 
+    def openVideo(self, _value=False):
+        if not self.mayContinue():
+            return
+        path = os.path.dirname(u(self.filePath)) \
+            if self.filePath else '.'
+        tips = '%s - Choose a video file' % __appname__
+        expand = 'Video Files(*.mp4 *.avi)'
+        videofile = QFileDialog.getOpenFileName(self, tips, path, expand)
+        if videofile:
+            if isinstance(videofile, (tuple, list)):
+                videofile = videofile[0]
+            if os.path.isfile(videofile):
+                self.splitVideo(videofile)
+
+    def splitVideo(self, videofile):
+        print videofile
+        import cv2
+        import os.path as osp
+        videodir,videoname = osp.split(videofile)
+        videoname_noext = videoname.split('.')[0]
+        out_path = osp.join(videodir, videoname_noext)
+        if not osp.exists(out_path):
+            os.mkdir(out_path)
+        jpegdir = osp.join(out_path, 'JPEGImages')
+        annodir = osp.join(out_path, 'Annotations')
+        if not osp.exists(jpegdir):os.mkdir(jpegdir)
+        if not osp.exists(annodir):os.mkdir(annodir)
+
+        # read video
+        cap = cv2.VideoCapture(videofile)
+        if False == cap.isOpened():
+            print 'open video failed!'
+        else:
+            print 'open video succeeded!'
+        (major_ver, minor_ver, subminor_ver) = (cv2.__version__).split('.')
+
+        if int(major_ver) < 3:
+            fps = cap.get(cv2.cv.CV_CAP_PROP_FPS)
+            fps = int(fps)
+            count = cap.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT)
+            print "Frames per second using video.get(cv2.cv.CV_CAP_PROP_FPS): {0}".format(fps)
+        else:
+            fps = cap.get(cv2.CAP_PROP_FPS)
+            fps = int(fps)
+            count = cap.get(cv2.cv.CV_CAP_FRAME_COUNT)
+            print "Frames per second using video.get(cv2.CAP_PROP_FPS) : {0}".format(fps)
+
+        progress = QProgressDialog(self)
+        progress.setWindowTitle(self.tr("请等待"))
+        progress.setLabelText(self.tr("拆分视频"))
+        progress.setRange(0, count)
+        progress.setMinimumDuration(5)
+        progress.setWindowModality(Qt.WindowModal)
+        progress.show()
+
+        frame_idx = 0
+        while True:
+            state, frame = cap.read()
+            if frame_idx % fps == 0:
+                index = frame_idx / fps
+                tmp_img_path = os.path.join(jpegdir, str(index).zfill(6) + '.jpg')
+                cv2.imwrite(tmp_img_path, frame)
+            progress.setValue(frame_idx)
+            frame_idx += 1
+
+            if not state:
+                break
+
+        self.filePath = jpegdir
+        cap.release()
+        pass
+
     def openDir(self, _value=False):
         if not self.mayContinue():
             return
@@ -988,9 +1066,8 @@ class MainWindow(QMainWindow, WindowMixin):
         path = os.path.dirname(self.filePath) \
             if self.filePath else '.'
 
-        if self.lastOpenDir is not None and len(self.lastOpenDir) > 1:
-            path = self.lastOpenDir
-
+        # if self.lastOpenDir is not None and len(self.lastOpenDir) > 1:
+        #     path = self.lastOpenDir
         dirpath = u(QFileDialog.getExistingDirectory(self,
                                                      '%s - Open Directory' % __appname__, path, QFileDialog.ShowDirsOnly
                                                      | QFileDialog.DontResolveSymlinks))
@@ -1292,4 +1369,4 @@ def main(argv):
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
 
-#pyinstaller -F labelImg.py .\libs\canvas.py .\libs\colorDialog.py .\libs\labelDialog.py .\libs\labelFile.py .\libs\lib.py .\libs\pascal_voc_io.py .\libs\shape.py .\libs\splitLabelDialog.py .\libs\toolBar.py .\libs\zoomWidget.py
+#pyinstaller -n labelSTaction -F labelImg.py .\libs\canvas.py .\libs\colorDialog.py .\libs\labelDialog.py .\libs\labelFile.py .\libs\lib.py .\libs\pascal_voc_io.py .\libs\shape.py .\libs\splitLabelDialog.py .\libs\toolBar.py .\libs\zoomWidget.py
