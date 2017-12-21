@@ -368,7 +368,10 @@ class MainWindow(QMainWindow, WindowMixin):
 
         self.tools = self.toolbar('Tools')
         self.actions.beginner = (
-            open, opendir, changeSavedir, openNextImg, openPrevImg, verify, save, None, create,
+            # open,
+            opendir, changeSavedir, openNextImg, openPrevImg,
+            # verify,
+            save, None, create,
             # create_parallelogram,
             copy, delete, None,
             zoomIn, zoom, zoomOut, fitWindow, fitWidth)
@@ -426,10 +429,11 @@ class MainWindow(QMainWindow, WindowMixin):
 
         self.settings = settings = Settings(types)
         self.recentFiles = list(settings.get('recentFiles', []))
-        size = settings.get('window/size', QSize(600, 500))
+        size = settings.get('window/size', QSize(1200, 900))
         position = settings.get('window/position', QPoint(0, 0))
         self.resize(size)
-        self.move(position)
+        # self.move(position)
+        # self.showFullScreen()
         saveDir = u(settings.get('savedir', None))
         self.lastOpenDir = u(settings.get('lastOpenDir', None))
         if os.path.exists(saveDir):
@@ -957,6 +961,9 @@ class MainWindow(QMainWindow, WindowMixin):
                                      ('Change saved folder', self.defaultSaveDir))
         self.statusBar().show()
 
+        if self.filePath is not None:
+            self.loadFile(self.filePath)
+
     def openAnnotation(self, _value=False):
         if self.filePath is None:
             self.statusBar().showMessage('Please select image first')
@@ -1284,3 +1291,5 @@ def main(argv):
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
+
+#pyinstaller -F labelImg.py .\libs\canvas.py .\libs\colorDialog.py .\libs\labelDialog.py .\libs\labelFile.py .\libs\lib.py .\libs\pascal_voc_io.py .\libs\shape.py .\libs\splitLabelDialog.py .\libs\toolBar.py .\libs\zoomWidget.py

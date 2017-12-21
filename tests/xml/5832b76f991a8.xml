@@ -12,15 +12,15 @@
   </size>
   <segmented>0</segmented>
   <object>
-    <name>&#23398;&#29983;-&#22810;&#20154;-&#22823;&#23631;-&#28436;&#31034;-&#22823;&#23631;</name>
+    <name>&#25945;&#24072;-&#22810;&#20154;-&#22823;&#23631;-&#28436;&#31034;-&#22823;&#23631;</name>
     <pose>Unspecified</pose>
     <truncated>0</truncated>
     <difficult>0</difficult>
     <bndbox>
-      <xmin>780</xmin>
-      <ymin>283</ymin>
-      <xmax>1000</xmax>
-      <ymax>457</ymax>
+      <xmin>630</xmin>
+      <ymin>248</ymin>
+      <xmax>850</xmax>
+      <ymax>422</ymax>
     </bndbox>
   </object>
   <object>
@@ -36,7 +36,7 @@
     </bndbox>
   </object>
   <object>
-    <name>&#20854;&#20182;-&#26080;&#20154;-&#23398;&#29983;&#21306;&#36890;&#36947;-&#35752;&#35770;-&#23398;&#29983;&#21306;&#36890;&#36947;</name>
+    <name>&#23398;&#29983;-&#22810;&#20154;-&#23398;&#29983;&#21306;-&#20889;-&#23398;&#29983;&#21306;</name>
     <pose>Unspecified</pose>
     <truncated>0</truncated>
     <difficult>0</difficult>
@@ -69,6 +69,18 @@
       <ymin>299</ymin>
       <xmax>1531</xmax>
       <ymax>508</ymax>
+    </bndbox>
+  </object>
+  <object>
+    <name>&#25945;&#24072;-&#21333;&#20154;-&#35762;&#21488;&#21306;-&#30475;&#21521;-&#35762;&#21488;&#21306;</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>305</xmin>
+      <ymin>457</ymin>
+      <xmax>419</xmax>
+      <ymax>599</ymax>
     </bndbox>
   </object>
 </annotation>

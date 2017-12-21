@@ -33,6 +33,7 @@ class SplitLabelDialog(QDialog):
         # print 'split'
         super(SplitLabelDialog, self).__init__(parent)
         self.tips = ([''] * len(predefined)) if predefined!=None else None
+        self.length = len(predefined)
         self.lbl = QLabel()
         self.buttonBox = bb = BB(BB.Ok | BB.Cancel, Qt.Horizontal, self)
         bb.button(BB.Ok).setIcon(newIcon('done'))
@@ -68,22 +69,15 @@ class SplitLabelDialog(QDialog):
 
     # use last text as predefine
     def popUp(self, text):
-        textsplit = text.split('-')
-        if len(textsplit) == len(self.tips):
-            self.tips = textsplit
-        self.pre_load()
+        # textsplit = text.split('-')
+        # if len(textsplit) == len(self.tips):
+        #     self.tips = textsplit
+        # self.pre_load()
         return self.lbl.text() if self.exec_() else None
         pass
     
     def validate(self):
         self.accept()
-
-
-    def statusOfButtonbox(self):
-        for _ in self.tips:
-            if _ == '':
-                return False
-        return True
 
     def getString(self, key, ind):
         self.tips[ind] = key
@@ -93,11 +87,11 @@ class SplitLabelDialog(QDialog):
     def printf(self):
         isReady = True
         string = ''
-        for _ in self.tips:
-            if _ == '':
-                _ = '?'
+        for _ in range(self.length):
+            if self.tips[_] == '':
+                self.tips[_] = '?'
                 isReady = False
-            string += _+'-'
+            string += str(self.tips[_])+'-'
         string = string[:-1]
         self.buttonBox.setEnabled(isReady)
         self.lbl.setText(string)
