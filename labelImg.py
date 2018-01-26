@@ -124,9 +124,9 @@ class MainWindow(QMainWindow, WindowMixin):
         self.screencast = "https://youtu.be/p0nR2YsCY_U"
 
         ### add another type of label
-        self.LABEL_LIST, self.SPLIT_LBALE = 0,1
+        self.LABEL_LIST, self.SPLIT_LBALE = 0, 1
         self.labelDialog = None
-        self.label_type = self.SPLIT_LBALE
+        self.label_type = self.LABEL_LIST
         if self.label_type == self.LABEL_LIST:
             self.loadPredefinedClasses()
             # Main widgets and related state.
@@ -1071,6 +1071,7 @@ class MainWindow(QMainWindow, WindowMixin):
         dirpath = u(QFileDialog.getExistingDirectory(self,
                                                      '%s - Open Directory' % __appname__, path, QFileDialog.ShowDirsOnly
                                                      | QFileDialog.DontResolveSymlinks))
+        dirpath = str(dirpath)
 
         if dirpath is not None and len(dirpath) > 1:
             self.lastOpenDir = dirpath
