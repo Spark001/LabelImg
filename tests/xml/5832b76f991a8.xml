@@ -1,7 +1,7 @@
 <annotation>
   <folder>img</folder>
   <filename>5832b76f991a8</filename>
-  <path>E:\Users\ScottShen\shenzhen\seeta_win32_v1.3\labelImg-master\tests\img\5832b76f991a8.jpg</path>
+  <path>/home/code/yangruyin/codes/LabelImg/tests/img/5832b76f991a8.jpg</path>
   <source>
     <database>Unknown</database>
   </source>
@@ -12,39 +12,15 @@
   </size>
   <segmented>0</segmented>
   <object>
-    <name>&#25945;&#24072;-&#22810;&#20154;-&#22823;&#23631;-&#28436;&#31034;-&#22823;&#23631;</name>
-    <pose>Unspecified</pose>
-    <truncated>0</truncated>
-    <difficult>0</difficult>
-    <bndbox>
-      <xmin>630</xmin>
-      <ymin>248</ymin>
-      <xmax>850</xmax>
-      <ymax>422</ymax>
-    </bndbox>
-  </object>
-  <object>
-    <name>&#20854;&#20182;-&#26080;&#20154;-&#23398;&#29983;&#21306;&#36890;&#36947;-&#35752;&#35770;-&#23398;&#29983;&#21306;&#36890;&#36947;</name>
-    <pose>Unspecified</pose>
-    <truncated>0</truncated>
-    <difficult>0</difficult>
-    <bndbox>
-      <xmin>855</xmin>
-      <ymin>564</ymin>
-      <xmax>1034</xmax>
-      <ymax>773</ymax>
-    </bndbox>
-  </object>
-  <object>
     <name>&#23398;&#29983;-&#22810;&#20154;-&#23398;&#29983;&#21306;-&#20889;-&#23398;&#29983;&#21306;</name>
     <pose>Unspecified</pose>
     <truncated>0</truncated>
     <difficult>0</difficult>
     <bndbox>
-      <xmin>1057</xmin>
-      <ymin>309</ymin>
-      <xmax>1236</xmax>
-      <ymax>518</ymax>
+      <xmin>1018</xmin>
+      <ymin>278</ymin>
+      <xmax>1157</xmax>
+      <ymax>523</ymax>
     </bndbox>
   </object>
   <object>
@@ -65,10 +41,10 @@
     <truncated>0</truncated>
     <difficult>0</difficult>
     <bndbox>
-      <xmin>1352</xmin>
-      <ymin>299</ymin>
-      <xmax>1531</xmax>
-      <ymax>508</ymax>
+      <xmin>1384</xmin>
+      <ymin>342</ymin>
+      <xmax>1563</xmax>
+      <ymax>551</ymax>
     </bndbox>
   </object>
   <object>
@@ -81,6 +57,42 @@
       <ymin>457</ymin>
       <xmax>419</xmax>
       <ymax>599</ymax>
+    </bndbox>
+  </object>
+  <object>
+    <name>dog</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>668</xmin>
+      <ymin>521</ymin>
+      <xmax>668</xmax>
+      <ymax>521</ymax>
+    </bndbox>
+  </object>
+  <object>
+    <name>person</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>806</xmin>
+      <ymin>328</ymin>
+      <xmax>806</xmax>
+      <ymax>328</ymax>
+    </bndbox>
+  </object>
+  <object>
+    <name>dog</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>625</xmin>
+      <ymin>247</ymin>
+      <xmax>625</xmax>
+      <ymax>247</ymax>
     </bndbox>
   </object>
 </annotation>

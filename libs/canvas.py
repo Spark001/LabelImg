@@ -308,12 +308,16 @@ class Canvas(QWidget):
 
     def boundedMoveVertex(self, pos):
         index, shape = self.hVertex, self.hShape
+        print index, shape
         point = shape[index]
         if self.outOfPixmap(pos):
             pos = self.intersectionPoint(point, pos)
 
         shiftPos = pos - point
         shape.moveVertexBy(index, shiftPos)
+
+        if shape[0] == shape[-1]:
+            return
 
         lindex = (index + 1) % 4
         rindex = (index + 3) % 4
@@ -459,11 +463,11 @@ class Canvas(QWidget):
 
     def finalise(self):
         assert self.current
-        if self.current.points[0] == self.current.points[-1]:
-            self.current = None
-            self.drawingPolygon.emit(False)
-            self.update()
-            return
+        #if self.current.points[0] == self.current.points[-1]:
+            #self.current = None
+            #self.drawingPolygon.emit(False)
+            #self.update()
+            #return
 
         self.current.close()
         self.shapes.append(self.current)
