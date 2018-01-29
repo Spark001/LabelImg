@@ -11,12 +11,15 @@ except ImportError:
 
 from shape import Shape
 from lib import distance
+import time
 
 CURSOR_DEFAULT = Qt.ArrowCursor
 CURSOR_POINT = Qt.PointingHandCursor
 CURSOR_DRAW = Qt.CrossCursor
 CURSOR_MOVE = Qt.ClosedHandCursor
 CURSOR_GRAB = Qt.OpenHandCursor
+
+
 
 class Canvas(QWidget):
     zoomRequest = pyqtSignal(int)
@@ -57,6 +60,14 @@ class Canvas(QWidget):
         self.setMouseTracking(True)
         self.setFocusPolicy(Qt.WheelFocus)
         self.verified = False
+
+        # create for judging single click or double click
+        self.pQTimerSingleClicked = QTimer(self)
+        self._pos = QPointF(0, 0)
+        self.pQTimerSingleClicked.timeout.connect(self.singleClickEvent)
+
+        # create for press-move-release or press-release-move-press-release-...
+        self.releaseTime = 0
 
     def enterEvent(self, ev):
         self.overrideCursor(self._cursor)
@@ -185,10 +196,13 @@ class Canvas(QWidget):
 
     def mousePressEvent(self, ev):
         pos = self.transformPos(ev.pos())
+        self._pos = pos
 
         if ev.button() == Qt.LeftButton:
             if self.drawing():
-                self.handleDrawing(pos)
+                self.releaseTime = time.time()
+                print 'press: ', self.releaseTime
+                self.pQTimerSingleClicked.start(300)
             else:
                 self.selectShapePoint(pos)
                 self.prevPoint = pos
@@ -198,46 +212,77 @@ class Canvas(QWidget):
             self.prevPoint = pos
             self.repaint()
 
-    def mouseReleaseEvent(self, ev):
-        if ev.button() == Qt.RightButton:
-            menu = self.menus[bool(self.selectedShapeCopy)]
-            self.restoreCursor()
-            if not menu.exec_(self.mapToGlobal(ev.pos()))\
-               and self.selectedShapeCopy:
-                # Cancel the move by deleting the shadow copy.
-                self.selectedShapeCopy = None
-                self.repaint()
-        elif ev.button() == Qt.LeftButton and self.selectedShape:
-            if self.selectedVertex():
-                self.overrideCursor(CURSOR_POINT)
+    def singleClickEvent(self):
+        self.pQTimerSingleClicked.stop()
+        pos = self._pos
+        if self.drawing():
+            if not self.current:
+                if not self.outOfPixmap(pos):
+                    self.current = Shape()
+                    self.current.addPoint(pos)
+                    self.line.points = [pos, pos]
+                    self.setHiding()
+                    self.drawingPolygon.emit(True)
+                    self.update()
             else:
-                self.overrideCursor(CURSOR_GRAB)
-        elif ev.button() == Qt.LeftButton:
-            pos = self.transformPos(ev.pos())
-            if self.drawing():
-                self.handleDrawing(pos)
-
-    def endMove(self, copy=False):
-        assert self.selectedShape and self.selectedShapeCopy
-        shape = self.selectedShapeCopy
-        #del shape.fill_color
-        #del shape.line_color
-        if copy:
-            self.shapes.append(shape)
-            self.selectedShape.selected = False
-            self.selectedShape = shape
-            self.repaint()
+                if not self.current.reachMaxPoints():
+                    self.current.addPoint(pos)
+                    self.line.points = [pos, pos]
+                    if self.current.reachMaxPoints():
+                        self.finalise()
         else:
-            self.selectedShape.points = [p for p in shape.points]
-        self.selectedShapeCopy = None
-
-    def hideBackroundShapes(self, value):
-        self.hideBackround = value
-        if self.selectedShape:
-            # Only hide other shapes if there is a current selection.
-            # Otherwise the user will not be able to select a shape.
-            self.setHiding(True)
+            self.selectShapePoint(pos)
+            self.prevPoint = pos
             self.repaint()
+
+    def mouseDoubleClickEvent(self, ev):
+        # We need at least 4 points here, since the mousePress handler
+        # adds an extra one before this handler is called.
+        self.pQTimerSingleClicked.stop()
+        print 'Double Click'
+        if self.current:
+            print 'None'
+        else:
+            print
+
+        pos = self.transformPos(ev.pos())
+        self.handleDrawingPoint(pos)
+        #if self.canCloseShape() and len(self.current) > 3:
+            #self.current.popPoint()
+            #self.finalise()
+
+    def handleDrawingPoint(self, pos):
+        print 'Enter handleDrawingPoint'
+        if not self.outOfPixmap(pos):
+            self.current = Shape()
+            self.current.addPoint(pos)
+            self.line.points = [pos, pos]
+            self.setHiding()
+            self.drawingPolygon.emit(True)
+            self.update()
+            initPos = self.current[0]
+            minX = initPos.x()
+            minY = initPos.y()
+            targetPos = self.line[1]
+            maxX = targetPos.x()
+            maxY = targetPos.y()
+            self.current.addPoint(QPointF(maxX, minY))
+            self.current.addPoint(targetPos)
+            self.current.addPoint(QPointF(minX, maxY))
+            self.finalise()
+
+    def handleDrawingRect(self, pos):
+        if self.current and self.current.reachMaxPoints() is False:
+            initPos = self.current[0]
+            minX = initPos.x()
+            minY = initPos.y()
+            targetPos = self.line[1]
+            maxX = targetPos.x()
+            maxY = targetPos.y()
+            self.current.addPoint(QPointF(maxX, minY))
+            self.current.addPoint(targetPos)
+            self.current.addPoint(QPointF(minX, maxY))
+            self.finalise()
 
     def handleDrawing(self, pos):
         if self.current and self.current.reachMaxPoints() is False:
@@ -263,18 +308,55 @@ class Canvas(QWidget):
             self.drawingPolygon.emit(True)
             self.update()
 
+    def mouseReleaseEvent(self, ev):
+        if ev.button() == Qt.RightButton:
+            menu = self.menus[bool(self.selectedShapeCopy)]
+            self.restoreCursor()
+            if not menu.exec_(self.mapToGlobal(ev.pos()))\
+               and self.selectedShapeCopy:
+                # Cancel the move by deleting the shadow copy.
+                self.selectedShapeCopy = None
+                self.repaint()
+        elif ev.button() == Qt.LeftButton and self.selectedShape:
+            if self.selectedVertex():
+                self.overrideCursor(CURSOR_POINT)
+            else:
+                self.overrideCursor(CURSOR_GRAB)
+        elif ev.button() == Qt.LeftButton:
+            print 'release: ', time.time()
+            print (time.time() - self.releaseTime)*1000
+            if (time.time() - self.releaseTime)*1000 > 200:   # indicate press-move-release
+                pos = self.transformPos(ev.pos())
+                if self.drawing():
+                    self.handleDrawingRect(pos)
+
+    def endMove(self, copy=False):
+        assert self.selectedShape and self.selectedShapeCopy
+        shape = self.selectedShapeCopy
+        #del shape.fill_color
+        #del shape.line_color
+        if copy:
+            self.shapes.append(shape)
+            self.selectedShape.selected = False
+            self.selectedShape = shape
+            self.repaint()
+        else:
+            self.selectedShape.points = [p for p in shape.points]
+        self.selectedShapeCopy = None
+
+    def hideBackroundShapes(self, value):
+        self.hideBackround = value
+        if self.selectedShape:
+            # Only hide other shapes if there is a current selection.
+            # Otherwise the user will not be able to select a shape.
+            self.setHiding(True)
+            self.repaint()
+
     def setHiding(self, enable=True):
         self._hideBackround = self.hideBackround if enable else False
 
     def canCloseShape(self):
         return self.drawing() and self.current and len(self.current) > 2
-
-    def mouseDoubleClickEvent(self, ev):
-        # We need at least 4 points here, since the mousePress handler
-        # adds an extra one before this handler is called.
-        if self.canCloseShape() and len(self.current) > 3:
-            self.current.popPoint()
-            self.finalise()
 
     def selectShape(self, shape):
         self.deSelectShape()
