@@ -1,7 +1,7 @@
 <annotation>
   <folder>img</folder>
   <filename>test</filename>
-  <path>E:\Users\ScottShen\shenzhen\seeta_win32_v1.3\labelImg-master\tests\img\test.bmp</path>
+  <path>G:\Codes\LabelImg\tests\img\test.bmp</path>
   <source>
     <database>Unknown</database>
   </source>
@@ -17,10 +17,10 @@
     <truncated>0</truncated>
     <difficult>0</difficult>
     <bndbox>
-      <xmin>204</xmin>
-      <ymin>187</ymin>
-      <xmax>371</xmax>
-      <ymax>391</ymax>
+      <xmin>170</xmin>
+      <ymin>117</ymin>
+      <xmax>338</xmax>
+      <ymax>321</ymax>
     </bndbox>
   </object>
 </annotation>

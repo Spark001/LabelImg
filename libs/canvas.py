@@ -229,6 +229,7 @@ class Canvas(QWidget):
                     self.current.addPoint(pos)
                     self.line.points = [pos, pos]
                     if self.current.reachMaxPoints():
+                        self.current._shapetype = 'Polygon'
                         self.finalise()
         else:
             self.selectShapePoint(pos)
@@ -243,10 +244,10 @@ class Canvas(QWidget):
         if self.current:
             print 'None'
         else:
-            print
+            pos = self.transformPos(ev.pos())
+            self.handleDrawingPoint(pos)
 
-        pos = self.transformPos(ev.pos())
-        self.handleDrawingPoint(pos)
+
         #if self.canCloseShape() and len(self.current) > 3:
             #self.current.popPoint()
             #self.finalise()
@@ -269,6 +270,7 @@ class Canvas(QWidget):
             self.current.addPoint(QPointF(maxX, minY))
             self.current.addPoint(targetPos)
             self.current.addPoint(QPointF(minX, maxY))
+            self.current._shapetype = 'Point'
             self.finalise()
 
     def handleDrawingRect(self, pos):
@@ -282,31 +284,8 @@ class Canvas(QWidget):
             self.current.addPoint(QPointF(maxX, minY))
             self.current.addPoint(targetPos)
             self.current.addPoint(QPointF(minX, maxY))
+            self.current._shapetype = 'Rect'
             self.finalise()
-
-    def handleDrawing(self, pos):
-        if self.current and self.current.reachMaxPoints() is False:
-            initPos = self.current[0]
-            minX = initPos.x()
-            minY = initPos.y()
-            targetPos = self.line[1]
-            maxX = targetPos.x()
-            maxY = targetPos.y()
-            self.current.addPoint(QPointF(maxX, minY))
-            self.current.addPoint(targetPos)
-            self.current.addPoint(QPointF(minX, maxY))
-            self.finalise()
-            # self.current.addPoint(initPos)
-            # self.line[0] = self.current[-1]
-            # if self.current.isClosed():
-            #     self.finalise()
-        elif not self.outOfPixmap(pos):
-            self.current = Shape()
-            self.current.addPoint(pos)
-            self.line.points = [pos, pos]
-            self.setHiding()
-            self.drawingPolygon.emit(True)
-            self.update()
 
     def mouseReleaseEvent(self, ev):
         if ev.button() == Qt.RightButton:

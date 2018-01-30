@@ -39,6 +39,7 @@ from labelFile import LabelFile, LabelFileError
 from toolBar import ToolBar
 from pascal_voc_io import PascalVocReader
 from pascal_voc_io import XML_EXT
+import platform
 
 __appname__ = 'labelImg'
 
@@ -50,7 +51,10 @@ def u(x):
     '''py2/py3 unicode helper'''
     if sys.version_info < (3, 0, 0):
         if type(x) == str:
-            return x.decode('utf-8')
+            if 'Windows' in platform.system():
+                return x.decode('gbk')
+            elif 'Linux' in platform.system():
+                return x.decode('utf-8')
         # if type(x) == QString:
         #     return unicode(x)
         return x
@@ -676,8 +680,8 @@ class MainWindow(QMainWindow, WindowMixin):
 
     def loadLabels(self, shapes):
         s = []
-        for label, points, line_color, fill_color in shapes:
-            shape = Shape(label=label)
+        for label, shapetype,  points, line_color, fill_color in shapes:
+            shape = Shape(label=label, shapetype=shapetype)
             for x, y in points:
                 shape.addPoint(QPointF(x, y))
             shape.close()
@@ -695,7 +699,8 @@ class MainWindow(QMainWindow, WindowMixin):
             self.labelFile = LabelFile()
             self.labelFile.verified = self.canvas.verified
         def format_shape(s):
-            return dict(label=s.label,
+            return dict(type=s._shapetype,
+                        label=s.label,
                         line_color=s.line_color.getRgb()
                         if s.line_color != self.lineColor else None,
                         fill_color=s.fill_color.getRgb()

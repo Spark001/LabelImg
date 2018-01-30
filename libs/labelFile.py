@@ -44,10 +44,19 @@ class LabelFile(object):
         writer.verified = self.verified
 
         for shape in shapes:
+            print shape['type']
             points = shape['points']
             label = shape['label']
-            bndbox = LabelFile.convertPoints2BndBox(points)
-            writer.addBndBox(bndbox[0], bndbox[1], bndbox[2], bndbox[3], label)
+            if shape['type'] == 'Rect':
+                bndbox = LabelFile.convertPoints2BndBox(points)
+                writer.addBndBox(bndbox[0], bndbox[1], bndbox[2], bndbox[3], label, 'Rect')
+            elif shape['type'] == 'Point':
+                point = points[0]
+                writer.addPoint(point[0], point[1], label, 'Point')
+            elif shape['type'] == 'Polygon':
+                polygon = LabelFile.convertPoints2Polygon(points)
+                writer.addPolygon(polygon[0], polygon[1], polygon[2], polygon[3], polygon[4], polygon[5],
+                                  polygon[6], polygon[7], label, 'Polygon')
 
         writer.save(targetFile=filename)
         return
@@ -84,3 +93,15 @@ class LabelFile(object):
             ymin = 1
 
         return (int(xmin), int(ymin), int(xmax), int(ymax))
+
+    @staticmethod
+    def convertPoints2Polygon(points):
+        x1 = points[0][0]
+        y1 = points[0][1]
+        x2 = points[1][0]
+        y2 = points[1][1]
+        x3 = points[2][0]
+        y3 = points[2][1]
+        x4 = points[3][0]
+        y4 = points[3][1]
+        return (int(x1), int(y1), int(x2), int(y2), int(x3), int(y3), int(x4), int(y4))

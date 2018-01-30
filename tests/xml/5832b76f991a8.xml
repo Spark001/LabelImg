@@ -1,7 +1,7 @@
 <annotation>
   <folder>img</folder>
   <filename>5832b76f991a8</filename>
-  <path>/home/code/yangruyin/codes/LabelImg/tests/img/5832b76f991a8.jpg</path>
+  <path>G:\Codes\LabelImg\tests\img\5832b76f991a8.jpg</path>
   <source>
     <database>Unknown</database>
   </source>
@@ -12,87 +12,57 @@
   </size>
   <segmented>0</segmented>
   <object>
-    <name>&#23398;&#29983;-&#22810;&#20154;-&#23398;&#29983;&#21306;-&#20889;-&#23398;&#29983;&#21306;</name>
+    <name>dog</name>
     <pose>Unspecified</pose>
     <truncated>0</truncated>
     <difficult>0</difficult>
-    <bndbox>
-      <xmin>1018</xmin>
-      <ymin>278</ymin>
-      <xmax>1157</xmax>
-      <ymax>523</ymax>
-    </bndbox>
-  </object>
-  <object>
-    <name>&#20854;&#20182;-&#26080;&#20154;-&#23398;&#29983;&#21306;&#36890;&#36947;-&#35752;&#35770;-&#23398;&#29983;&#21306;&#36890;&#36947;</name>
-    <pose>Unspecified</pose>
-    <truncated>0</truncated>
-    <difficult>0</difficult>
-    <bndbox>
-      <xmin>1079</xmin>
-      <ymin>579</ymin>
-      <xmax>1258</xmax>
-      <ymax>788</ymax>
-    </bndbox>
-  </object>
-  <object>
-    <name>&#20854;&#20182;-&#26080;&#20154;-&#23398;&#29983;&#21306;&#36890;&#36947;-&#35752;&#35770;-&#23398;&#29983;&#21306;&#36890;&#36947;</name>
-    <pose>Unspecified</pose>
-    <truncated>0</truncated>
-    <difficult>0</difficult>
-    <bndbox>
-      <xmin>1384</xmin>
-      <ymin>342</ymin>
-      <xmax>1563</xmax>
-      <ymax>551</ymax>
-    </bndbox>
-  </object>
-  <object>
-    <name>&#25945;&#24072;-&#21333;&#20154;-&#35762;&#21488;&#21306;-&#30475;&#21521;-&#35762;&#21488;&#21306;</name>
-    <pose>Unspecified</pose>
-    <truncated>0</truncated>
-    <difficult>0</difficult>
-    <bndbox>
-      <xmin>305</xmin>
-      <ymin>457</ymin>
-      <xmax>419</xmax>
-      <ymax>599</ymax>
-    </bndbox>
+    <polygon>
+      <x1>1120</x1>
+      <y1>212</y1>
+      <x2>1318</x2>
+      <y2>110</y2>
+      <x3>1565</x3>
+      <y3>375</y3>
+      <x4>1083</x4>
+      <y4>499</y4>
+    </polygon>
   </object>
   <object>
     <name>dog</name>
     <pose>Unspecified</pose>
     <truncated>0</truncated>
     <difficult>0</difficult>
-    <bndbox>
-      <xmin>668</xmin>
-      <ymin>521</ymin>
-      <xmax>668</xmax>
-      <ymax>521</ymax>
-    </bndbox>
+    <point>
+      <x>894</x>
+      <y>432</y>
+    </point>
   </object>
   <object>
-    <name>person</name>
+    <name>cat</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <polygon>
+      <x1>274</x1>
+      <y1>399</y1>
+      <x2>641</x2>
+      <y2>192</y2>
+      <x3>597</x3>
+      <y3>604</y3>
+      <x4>213</x4>
+      <y4>769</y4>
+    </polygon>
+  </object>
+  <object>
+    <name>car</name>
     <pose>Unspecified</pose>
     <truncated>0</truncated>
     <difficult>0</difficult>
     <bndbox>
-      <xmin>806</xmin>
-      <ymin>328</ymin>
-      <xmax>806</xmax>
-      <ymax>328</ymax>
-    </bndbox>
-  </object>
-  <object>
-    <name>dog</name>
-    <pose>Unspecified</pose>
-    <truncated>0</truncated>
-    <difficult>0</difficult>
-    <bndbox>
-      <xmin>625</xmin>
-      <ymin>247</ymin>
-      <xmax>625</xmax>
-      <ymax>247</ymax>
+      <xmin>715</xmin>
+      <ymin>540</ymin>
+      <xmax>973</xmax>
+      <ymax>822</ymax>
     </bndbox>
   </object>
 </annotation>
