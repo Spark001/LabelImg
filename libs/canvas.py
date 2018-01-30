@@ -68,6 +68,7 @@ class Canvas(QWidget):
 
         # create for press-move-release or press-release-move-press-release-...
         self.releaseTime = 0
+        self.isLeftPressed = False
 
     def enterEvent(self, ev):
         self.overrideCursor(self._cursor)
@@ -197,9 +198,9 @@ class Canvas(QWidget):
     def mousePressEvent(self, ev):
         pos = self.transformPos(ev.pos())
         self._pos = pos
-
         if ev.button() == Qt.LeftButton:
             if self.drawing():
+                self.isLeftPressed = True
                 self.releaseTime = time.time()
                 print 'press: ', self.releaseTime
                 self.pQTimerSingleClicked.start(300)
@@ -304,6 +305,7 @@ class Canvas(QWidget):
         elif ev.button() == Qt.LeftButton:
             print 'release: ', time.time()
             print (time.time() - self.releaseTime)*1000
+            self.isLeftPressed = False
             if (time.time() - self.releaseTime)*1000 > 200:   # indicate press-move-release
                 pos = self.transformPos(ev.pos())
                 if self.drawing():
@@ -476,8 +478,9 @@ class Canvas(QWidget):
         if self.selectedShapeCopy:
             self.selectedShapeCopy.paint(p)
 
-        # Paint rect
-        if self.current is not None and len(self.line) == 2:
+        # Paint rect when
+        print self.isLeftPressed
+        if self.current is not None and len(self.line) == 2 and self.isLeftPressed:
             leftTop = self.line[0]
             rightBottom = self.line[1]
             rectWidth = rightBottom.x() - leftTop.x()
