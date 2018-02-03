@@ -3,8 +3,7 @@
 Label image list by make a class label.
 
 ## BUG!!!
-1. É¾³ıÒ»¸öshapeÖ®ºó£¬copyºÍdelete°´Å¥Ã»ÓĞÇĞ»»²»¿Éµã»÷
-2. µ±±ê³öµÄ¿òÊÇÒ»¸öµãÊ±£¬ÒÆ¶¯¿òÊ±²»¿É±£´æ
+1. ä»»æ„å››è¾¹å½¢çš„å¾®è°ƒå°šæœªä¿®æ”¹
 
 ## Usage
 
@@ -38,5 +37,5 @@ The annotation will be saved to the folder you specify.
 | Space    | After choosing one label, quick add it   |
 
 
-## Note£º 
-1. ÎÄ¼şÂ·¾¶²»Òª°üº¬ÖĞÎÄ×Ö·û
+## Noteï¼š 
+1. æ–‡ä»¶è·¯å¾„ä¸è¦åŒ…å«ä¸­æ–‡å­—ç¬¦
