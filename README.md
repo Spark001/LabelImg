@@ -3,7 +3,7 @@
 Label image list by make a class label.
 
 ## BUG!!!
-1. 任意四边形的微调尚未修改
+# Maybe there have some unfound bugs
 
 ## Usage
 
