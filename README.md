@@ -3,7 +3,7 @@
 Label image list by make a class label.
 
 ## BUG!!!
-# Maybe there have some unfound bugs
+1. Maybe there have some unfound bugs
 
 ## Usage
 
