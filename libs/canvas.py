@@ -379,21 +379,24 @@ class Canvas(QWidget):
         shiftPos = pos - point
         shape.moveVertexBy(index, shiftPos)
 
-        if shape[0] == shape[-1]:
+        #if shape[0] == shape[-1]: #indicate the shape is a point
+           #return
+        if shape._shapetype == 'Point':
             return
+        elif shape._shapetype == 'Rect':
+            lindex = (index + 1) % 4
+            rindex = (index + 3) % 4
+            lshift = None
+            rshift = None
+            if index % 2 == 0:
+                rshift = QPointF(shiftPos.x(), 0)
+                lshift = QPointF(0, shiftPos.y())
+            else:
+                lshift = QPointF(shiftPos.x(), 0)
+                rshift = QPointF(0, shiftPos.y())
+            shape.moveVertexBy(rindex, rshift)
+            shape.moveVertexBy(lindex, lshift)
 
-        lindex = (index + 1) % 4
-        rindex = (index + 3) % 4
-        lshift = None
-        rshift = None
-        if index % 2 == 0:
-            rshift = QPointF(shiftPos.x(), 0)
-            lshift = QPointF(0, shiftPos.y())
-        else:
-            lshift = QPointF(shiftPos.x(), 0)
-            rshift = QPointF(0, shiftPos.y())
-        shape.moveVertexBy(rindex, rshift)
-        shape.moveVertexBy(lindex, lshift)
 
     def boundedMoveShape(self, shape, pos):
         if self.outOfPixmap(pos):
