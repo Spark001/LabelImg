@@ -21,7 +21,6 @@ except ImportError:
     # http://stackoverflow.com/questions/21217399/pyqt4-qtcore-qvariant-object-instead-of-a-string
     if sys.version_info.major >= 3:
         import sip
-
         sip.setapi('QVariant', 2)
     from PyQt4.QtGui import *
     from PyQt4.QtCore import *
@@ -863,7 +862,7 @@ class MainWindow(QMainWindow, WindowMixin):
             self.addRecentFile(self.filePath)
             self.toggleActions(True)
 
-            # Label xml file and show bound box according to its filename
+            # Label xml file and show bousave_imagend box according to its filename
             if self.usingPascalVocFormat is True and \
                             self.defaultSaveDir is not None:
                 basename = os.path.basename(
@@ -1077,6 +1076,9 @@ class MainWindow(QMainWindow, WindowMixin):
                                                      '%s - Open Directory' % __appname__, path, QFileDialog.ShowDirsOnly
                                                      | QFileDialog.DontResolveSymlinks))
         dirpath = str(dirpath)
+
+        if dirpath is '': # which the user is not choose the directory
+            dirpath = self.lastOpenDir
 
         if dirpath is not None and len(dirpath) > 1:
             self.lastOpenDir = dirpath
@@ -1375,4 +1377,4 @@ def main(argv):
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
 
-#pyinstaller -n labelSTaction -F labelImg.py .\libs\canvas.py .\libs\colorDialog.py .\libs\labelDialog.py .\libs\labelFile.py .\libs\lib.py .\libs\pascal_voc_io.py .\libs\shape.py .\libs\splitLabelDialog.py .\libs\toolBar.py .\libs\zoomWidget.py
+#pyinstaller -n labelSTaction labelImg.py -p ./libs -w
