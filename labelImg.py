@@ -795,18 +795,23 @@ class MainWindow(QMainWindow, WindowMixin):
             print text
 
         if text is not None:
+
+            if self.label_type == self.LABEL_LIST:
+                if text not in self.labelHist:
+                    self.labelHist.append(text)
+                    self.lineColors[text] = QColor(int(np.random.random() * 255), int(np.random.random() * 255), int(np.random.random() * 255), int(255))
+
             self.prevLabelText = text
-            self.addLabel(self.canvas.setLastLabel(text))
+            self.canvas.setLastLabel(text)
+            if self.checkValue:
+                self.canvas.setLastColor(self.lineColors[text])
+            self.addLabel(self.canvas.shapes[-1])
             if self.beginner():  # Switch to edit mode.
                 self.canvas.setEditing(True)
                 self.actions.create.setEnabled(True)
             else:
                 self.actions.editMode.setEnabled(True)
             self.setDirty()
-
-            if self.label_type == self.LABEL_LIST:
-                if text not in self.labelHist:
-                    self.labelHist.append(text)
         else:
             self.canvas.resetAllLines()
 

@@ -720,7 +720,10 @@ class Canvas(QWidget):
     def setLastLabel(self, text):
         assert text
         self.shapes[-1].label = text
-        return self.shapes[-1]
+
+    def setLastColor(self, color):
+        assert color
+        self.shapes[-1].line_color = color
 
     def undoLastLine(self):
         assert self.shapes
