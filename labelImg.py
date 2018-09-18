@@ -9,6 +9,7 @@ import subprocess
 
 from functools import partial
 from collections import defaultdict
+import numpy as np
 
 try:
     from PyQt5.QtGui import *
@@ -138,6 +139,13 @@ class MainWindow(QMainWindow, WindowMixin):
             self.loadPredefinedClassesSplited()
             # self.labelDialog = SplitLabelDialog(parent=self, predefined=self.labelHist)
 
+        # colors
+        self.lineColors = {}
+        colorNum = len(self.labelHist)
+        for i in range(colorNum):
+            color = QColor(int(np.random.random() * 255), int(np.random.random() * 255), int(np.random.random() * 255), int(0.5 * 255))
+            self.lineColors[self.labelHist[i]] = color
+
         self.labelList = QListWidget()
         self.itemsToShapes = {}
         self.shapesToItems = {}
@@ -179,7 +187,7 @@ class MainWindow(QMainWindow, WindowMixin):
         self.zoomWidget = ZoomWidget()
         self.colorDialog = ColorDialog(parent=self)
 
-        self.canvas = Canvas()
+        self.canvas = Canvas(self.lineColors)
         self.canvas.zoomRequest.connect(self.zoomRequest)
 
         scroll = QScrollArea()
@@ -262,6 +270,12 @@ class MainWindow(QMainWindow, WindowMixin):
         advancedMode = action('&Advanced Mode', self.toggleAdvancedMode,
                               'Ctrl+Shift+A', 'expert', u'Switch to advanced mode',
                               checkable=True)
+
+        # add for check
+        self.checkValue = False
+        checkMode = action('&Check Mode', self.toggleCheckMode,
+                           'Ctrl+Shift+C', 'expert', u'Switch to check mode',
+                           checkable=True, enabled=False)
 
         hideAll = action('&Hide\nRectBox', partial(self.togglePolygons, False),
                          'Ctrl+H', 'hide', u'Hide all Boxs',
@@ -346,7 +360,7 @@ class MainWindow(QMainWindow, WindowMixin):
                                                delete, shapeLineColor, shapeFillColor),
                               onLoadActive=(
                                   close, create, createMode, editMode),
-                              onShapesPresent=(saveAs, hideAll, showAll))
+                              onShapesPresent=(saveAs, checkMode, hideAll, showAll))
 
         self.menus = struct(
             file=self.menu('&File'),
@@ -361,7 +375,7 @@ class MainWindow(QMainWindow, WindowMixin):
                     quit))
         addActions(self.menus.help, (help,))
         addActions(self.menus.view, (
-            labels, advancedMode, None,
+            labels, advancedMode, checkMode, None,
             hideAll, showAll, None,
             zoomIn, zoomOut, zoomOrg, None,
             fitWindow, fitWidth))
@@ -495,6 +509,23 @@ class MainWindow(QMainWindow, WindowMixin):
             self.dock.setFeatures(self.dock.features() | self.dockFeatures)
         else:
             self.dock.setFeatures(self.dock.features() ^ self.dockFeatures)
+
+    def toggleCheckMode(self, value=True):
+        if value:
+            self.checkValue = True
+            for item, shape in self.itemsToShapes.items():
+                print self.lineColors[shape.label]
+                shape.line_color = self.lineColors[shape.label]
+                shape.vertex_fill_color = shape.line_color
+                #shape.scale = 1.0
+            self.canvas.repaint()
+        else:
+            self.checkValue = False
+            for item, shape in self.itemsToShapes.items():
+                shape.line_color = QColor(0, 255, 0, 128)
+                shape.vertex_fill_color = QColor(0, 255, 0, 255)
+            self.canvas.repaint()
+
 
     def populateModeActions(self):
         if self.beginner():
@@ -688,6 +719,11 @@ class MainWindow(QMainWindow, WindowMixin):
             self.addLabel(shape)
             if line_color:
                 shape.line_color = QColor(*line_color)
+            else:
+                if label not in self.labelHist:
+                    self.labelHist.append(label)
+                    self.lineColors[label] = QColor(int(np.random.random() * 255), int(np.random.random() * 255), int(np.random.random() * 255), int(255))
+                #line_color = QColor(*self.lineColors[label])
             if fill_color:
                 shape.fill_color = QColor(*fill_color)
         self.canvas.loadShapes(s)
@@ -1122,6 +1158,7 @@ class MainWindow(QMainWindow, WindowMixin):
             filename = self.mImgList[currIndex - 1]
             if filename:
                 self.loadFile(filename)
+        self.toggleCheckMode(self.checkValue)
 
     def openNextImg(self, _value=False):
         # Proceding next image without dialog if having any label
@@ -1145,6 +1182,8 @@ class MainWindow(QMainWindow, WindowMixin):
 
         if filename:
             self.loadFile(filename)
+
+        self.toggleCheckMode(self.checkValue)
 
     def openFile(self, _value=False):
         if not self.mayContinue():

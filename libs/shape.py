@@ -114,6 +114,8 @@ class Shape(object):
                 color = self.select_fill_color if self.selected else self.fill_color
                 painter.fillPath(line_path, color)
 
+            #self.drawRotation(painter)
+
     def drawVertex(self, path, i):
         d = self.point_size / self.scale
         shape = self.point_type
@@ -124,13 +126,32 @@ class Shape(object):
         if self._highlightIndex is not None:
             self.vertex_fill_color = self.hvertex_fill_color
         else:
-            self.vertex_fill_color = Shape.vertex_fill_color
+            self.vertex_fill_color = self.line_color
         if shape == self.P_SQUARE:
             path.addRect(point.x() - d / 2, point.y() - d / 2, d, d)
         elif shape == self.P_ROUND:
             path.addEllipse(point, d / 2.0, d / 2.0)
         else:
             assert False, "unsupported vertex shape"
+
+    def drawRotation(self, painter):
+        if self.selected and self._shapetype != 'Point':
+            line_path = QPainterPath()
+            p1 = (self.points[0]+self.points[1])/2
+            line_path.moveTo(p1)
+            p2 = QPoint(p1.x(), p1.y()-15/self.scale)
+            line_path.lineTo(p2)
+            painter.drawPath(line_path)
+            image = QPixmap('icons/rotation.png')
+            im_w = image.width()
+            im_h = image.height()
+            # rotation button
+            topLeft = QPoint(p2.x()-im_w/2/self.scale, p2.y()-im_h/self.scale)
+            bottomRight = QPoint(p2.x()+im_w/2/self.scale, p2.y())
+            rect = QRect(topLeft, bottomRight)
+
+            painter.drawPixmap(rect, image)
+            # change the mouse
 
     def nearestVertex(self, point, epsilon):
         for i, p in enumerate(self.points):

@@ -12,14 +12,15 @@ except ImportError:
 from shape import Shape
 from lib import distance
 import time
+import numpy as np
 
 CURSOR_DEFAULT = Qt.ArrowCursor
 CURSOR_POINT = Qt.PointingHandCursor
 CURSOR_DRAW = Qt.CrossCursor
 CURSOR_MOVE = Qt.ClosedHandCursor
 CURSOR_GRAB = Qt.OpenHandCursor
-
-
+#CURSOR_ROTATION_W = CURSOR_DEFAULT
+#CURSOR_ROTATION = CURSOR_DEFAULT
 
 class Canvas(QWidget):
     zoomRequest = pyqtSignal(int)
@@ -33,8 +34,10 @@ class Canvas(QWidget):
 
     epsilon = 11.0
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, lineColors, *args, **kwargs):
         super(Canvas, self).__init__(*args, **kwargs)
+        # get the labelHist to make different color
+        self.lineColors = lineColors
         # Initialise local state.
         self.mode = self.EDIT
         self.shapes = []
@@ -42,7 +45,7 @@ class Canvas(QWidget):
         self.selectedShape = None  # save the selected shape here
         self.selectedShapeCopy = None
         self.lineColor = QColor(0, 0, 255)
-        self.line = Shape(line_color=self.lineColor)
+        self.line = Shape()
         self.prevPoint = QPointF()
         self.offsets = QPointF(), QPointF()
         self.scale = 1.0
@@ -54,6 +57,8 @@ class Canvas(QWidget):
         self.hVertex = None
         self._painter = QPainter()
         self._cursor = CURSOR_DEFAULT
+        self.CURSOR_ROTATION_W = QCursor(QPixmap('icons/rotation_w.png'), -1, -1)
+        self.CURSOR_ROTATION = QCursor(QPixmap('icons/rotation_w.png'), -1, -1)
         # Menus:
         self.menus = (QMenu(), QMenu())
         # Set widget options.
@@ -133,7 +138,23 @@ class Canvas(QWidget):
             else:
                 self.prevPoint = pos
             self.repaint()
-            return
+        else:
+            # change the mouse style if it enters the selected shape rotation area.
+            ## get the selected shape's points
+            if self.selectedShape is not None and self.selectedShape._shapetype != 'Point':
+                points = self.selectedShape.points
+                p1 = (points[0]+points[1])/2
+                p2 = QPoint(p1.x(), p1.y()-15)
+                # rotation button area
+                topLeft = QPoint(p2.x()-20, p2.y()-40)
+                bottomRight = QPoint(p2.x()+20, p2.y())
+                rect = QRect(topLeft, bottomRight)
+                # change the mouse shape
+                print pos.x(), pos.y()
+                if pos.x() >= topLeft.x() and pos.x() <= bottomRight.x():
+                    if pos.y() >= topLeft.y() and pos.y() <= bottomRight.y():
+                        #self.overrideCursor(CURSOR_DRAW)
+                        print 'here we should do something.'
 
         # Polygon copy moving.
         if Qt.RightButton & ev.buttons():
@@ -188,12 +209,12 @@ class Canvas(QWidget):
                 self.overrideCursor(CURSOR_GRAB)
                 self.update()
                 break
-        else:  # Nothing found, clear highlights, reset state.
-            if self.hShape:
-                self.hShape.highlightClear()
-                self.update()
-            self.hVertex, self.hShape = None, None
-            self.overrideCursor(CURSOR_DEFAULT)
+            else:  # Nothing found, clear highlights, reset state.
+                if self.hShape:
+                    self.hShape.highlightClear()
+                    self.update()
+                self.hVertex, self.hShape = None, None
+                self.overrideCursor(CURSOR_DEFAULT)
 
     def mousePressEvent(self, ev):
         pos = self.transformPos(ev.pos())
@@ -285,7 +306,10 @@ class Canvas(QWidget):
             self.current.addPoint(QPointF(maxX, minY))
             self.current.addPoint(targetPos)
             self.current.addPoint(QPointF(minX, maxY))
-            self.current._shapetype = 'Rect'
+            if initPos.x() == targetPos.x() and initPos.y() == targetPos.y():
+                self.current._shapetype = 'Point'
+            else:
+                self.current._shapetype = 'Rect'
             self.finalise()
 
     def mouseReleaseEvent(self, ev):
@@ -351,15 +375,29 @@ class Canvas(QWidget):
         """Select the first shape created which contains this point."""
         self.deSelectShape()
         if self.selectedVertex():  # A vertex is marked for selection.
+            if self.hShape:
+                spoints = self.hShape.points
+                for spoint in spoints:
+                    for oshape in reversed(self.shapes):
+                        if oshape is not self.hShape and oshape.containsPoint(spoint):
+                            self.setShapeVisible(oshape, False)
             index, shape = self.hVertex, self.hShape
             shape.highlightVertex(index, shape.MOVE_VERTEX)
             self.selectShape(shape)
             return
         for shape in reversed(self.shapes):
+            self.setShapeVisible(shape, True)
             if self.isVisible(shape) and shape.containsPoint(point):
                 self.selectShape(shape)
+                # hide the shapes which conver the points of the selected shape
+                spoints = shape.points
+                for spoint in spoints:
+                    for oshape in reversed(self.shapes):
+                        if oshape is not shape and oshape.containsPoint(spoint):
+                            self.setShapeVisible(oshape, False)
                 self.calculateOffsets(shape, point)
-                return
+                break
+
 
     def calculateOffsets(self, shape, point):
         rect = shape.boundingRect()
@@ -396,7 +434,6 @@ class Canvas(QWidget):
                 rshift = QPointF(0, shiftPos.y())
             shape.moveVertexBy(rindex, rshift)
             shape.moveVertexBy(lindex, lshift)
-
 
     def boundedMoveShape(self, shape, pos):
         if self.outOfPixmap(pos):

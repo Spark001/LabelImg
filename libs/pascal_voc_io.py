@@ -164,10 +164,10 @@ class PascalVocReader:
         return self.shapes
 
     def addBndBox(self, label, bndbox):
-        xmin = int(bndbox.find('xmin').text)
-        ymin = int(bndbox.find('ymin').text)
-        xmax = int(bndbox.find('xmax').text)
-        ymax = int(bndbox.find('ymax').text)
+        xmin = int(float(bndbox.find('xmin').text))
+        ymin = int(float(bndbox.find('ymin').text))
+        xmax = int(float(bndbox.find('xmax').text))
+        ymax = int(float(bndbox.find('ymax').text))
         points = [(xmin, ymin), (xmax, ymin), (xmax, ymax), (xmin, ymax)]
         self.shapes.append((label, 'Rect', points, None, None))
 
@@ -180,14 +180,14 @@ class PascalVocReader:
         self.shapes.append((label, 'Point', points, None, None))
 
     def addPolygon(self, label, polygon):
-        x1 = int(polygon.find('x1').text)
-        y1 = int(polygon.find('y1').text)
-        x2 = int(polygon.find('x2').text)
-        y2 = int(polygon.find('y2').text)
-        x3 = int(polygon.find('x3').text)
-        y3 = int(polygon.find('y3').text)
-        x4 = int(polygon.find('x4').text)
-        y4 = int(polygon.find('y4').text)
+        x1 = int(float(polygon.find('x1').text))
+        y1 = int(float(polygon.find('y1').text))
+        x2 = int(float(polygon.find('x2').text))
+        y2 = int(float(polygon.find('y2').text))
+        x3 = int(float(polygon.find('x3').text))
+        y3 = int(float(polygon.find('y3').text))
+        x4 = int(float(polygon.find('x4').text))
+        y4 = int(float(polygon.find('y4').text))
         points = [(x1, y1), (x2, y2), (x3, y3), (x4, y4)]
         self.shapes.append((label, 'Polygon', points, None, None))
 
