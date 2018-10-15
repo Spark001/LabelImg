@@ -18,8 +18,8 @@ from PyInstaller.__main__ import run
 # --clean: clean temp files
 
 if __name__ == '__main__':
-    opts=['-F', '-w', '--paths=C:/Users/root/labelImg/Lib/site-packages/python_qt5-0.3.0-py2.7.egg/PyQt5/',
-          '--paths=C:/Users/root/labelImg/Lib/site-packages/python_qt5-0.3.0-py2.7.egg/PyQt5/plugins',
+    opts=['-F', '-w', '--paths=C:/ProgramData/Anaconda2/envs/labelimg-installer3.5/Lib/site-packages/PyQt5/',
+          '--paths=C:/ProgramData/Anaconda2/envs/labelimg-installer3.5/Lib/site-packages/PyQt5/plugins/',
           '--paths=./libs', 'labelImg.py']
 
     run(opts)

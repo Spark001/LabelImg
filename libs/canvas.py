@@ -150,11 +150,11 @@ class Canvas(QWidget):
                 bottomRight = QPoint(p2.x()+20, p2.y())
                 rect = QRect(topLeft, bottomRight)
                 # change the mouse shape
-                print pos.x(), pos.y()
+                print(pos.x(), pos.y())
                 if pos.x() >= topLeft.x() and pos.x() <= bottomRight.x():
                     if pos.y() >= topLeft.y() and pos.y() <= bottomRight.y():
                         #self.overrideCursor(CURSOR_DRAW)
-                        print 'here we should do something.'
+                        print('here we should do something.')
 
         # Polygon copy moving.
         if Qt.RightButton & ev.buttons():
@@ -223,7 +223,7 @@ class Canvas(QWidget):
             if self.drawing():
                 self.isLeftPressed = True
                 self.releaseTime = time.time()
-                print 'press: ', self.releaseTime
+                print('press: ', self.releaseTime)
                 self.pQTimerSingleClicked.start(300)
             else:
                 self.selectShapePoint(pos)
@@ -262,9 +262,9 @@ class Canvas(QWidget):
         # We need at least 4 points here, since the mousePress handler
         # adds an extra one before this handler is called.
         self.pQTimerSingleClicked.stop()
-        print 'Double Click'
+        print('Double Click')
         if self.current:
-            print 'None'
+            print('None')
         else:
             pos = self.transformPos(ev.pos())
             self.handleDrawingPoint(pos)
@@ -275,7 +275,7 @@ class Canvas(QWidget):
             #self.finalise()
 
     def handleDrawingPoint(self, pos):
-        print 'Enter handleDrawingPoint'
+        print('Enter handleDrawingPoint')
         if not self.outOfPixmap(pos):
             self.current = Shape()
             self.current.addPoint(pos)
@@ -327,8 +327,8 @@ class Canvas(QWidget):
             else:
                 self.overrideCursor(CURSOR_GRAB)
         elif ev.button() == Qt.LeftButton:
-            print 'release: ', time.time()
-            print (time.time() - self.releaseTime)*1000
+            print('release: ', time.time())
+            print((time.time() - self.releaseTime)*1000)
             self.isLeftPressed = False
             if (time.time() - self.releaseTime)*1000 > 200:   # indicate press-move-release
                 pos = self.transformPos(ev.pos())
@@ -409,7 +409,7 @@ class Canvas(QWidget):
 
     def boundedMoveVertex(self, pos):
         index, shape = self.hVertex, self.hShape
-        print index, shape
+        print(index, shape)
         point = shape[index]
         if self.outOfPixmap(pos):
             pos = self.intersectionPoint(point, pos)
@@ -519,7 +519,7 @@ class Canvas(QWidget):
             self.selectedShapeCopy.paint(p)
 
         # Paint rect when
-        print self.isLeftPressed
+        print(self.isLeftPressed)
         if self.current is not None and len(self.line) == 2 and self.isLeftPressed:
             leftTop = self.line[0]
             rightBottom = self.line[1]

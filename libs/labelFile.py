@@ -44,7 +44,7 @@ class LabelFile(object):
         writer.verified = self.verified
 
         for shape in shapes:
-            print shape['type']
+            print(shape['type'])
             points = shape['points']
             label = shape['label']
             if shape['type'] == 'Rect':

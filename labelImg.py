@@ -43,9 +43,7 @@ import platform
 
 __appname__ = 'labelImg'
 
-
 # Utility functions and classes.
-
 
 def u(x):
     '''py2/py3 unicode helper'''
@@ -514,7 +512,7 @@ class MainWindow(QMainWindow, WindowMixin):
         if value:
             self.checkValue = True
             for item, shape in self.itemsToShapes.items():
-                print self.lineColors[shape.label]
+                print(self.lineColors[shape.label])
                 shape.line_color = self.lineColors[shape.label]
                 shape.vertex_fill_color = shape.line_color
                 #shape.scale = 1.0
@@ -792,7 +790,7 @@ class MainWindow(QMainWindow, WindowMixin):
         elif self.label_type == self.SPLIT_LBALE:
             self.labelDialog = SplitLabelDialog(parent=self,predefined=self.labelHist)
             text = self.labelDialog.popUp(text=self.prevLabelText)
-            print text
+            print(text)
 
         if text is not None:
 
@@ -1047,7 +1045,7 @@ class MainWindow(QMainWindow, WindowMixin):
                 self.splitVideo(videofile)
 
     def splitVideo(self, videofile):
-        print videofile
+        print(videofile)
         import cv2
         import os.path as osp
         videodir,videoname = osp.split(videofile)
@@ -1063,21 +1061,21 @@ class MainWindow(QMainWindow, WindowMixin):
         # read video
         cap = cv2.VideoCapture(videofile)
         if False == cap.isOpened():
-            print 'open video failed!'
+            print('open video failed!')
         else:
-            print 'open video succeeded!'
+            print('open video succeeded!')
         (major_ver, minor_ver, subminor_ver) = (cv2.__version__).split('.')
 
         if int(major_ver) < 3:
             fps = cap.get(cv2.cv.CV_CAP_PROP_FPS)
             fps = int(fps)
             count = cap.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT)
-            print "Frames per second using video.get(cv2.cv.CV_CAP_PROP_FPS): {0}".format(fps)
+            print("Frames per second using video.get(cv2.cv.CV_CAP_PROP_FPS): {0}".format(fps))
         else:
             fps = cap.get(cv2.CAP_PROP_FPS)
             fps = int(fps)
             count = cap.get(cv2.cv.CV_CAP_FRAME_COUNT)
-            print "Frames per second using video.get(cv2.CAP_PROP_FPS) : {0}".format(fps)
+            print("Frames per second using video.get(cv2.CAP_PROP_FPS) : {0}".format(fps))
 
         progress = QProgressDialog(self)
         progress.setWindowTitle(self.tr("请等待"))

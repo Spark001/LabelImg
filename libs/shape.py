@@ -17,7 +17,8 @@ DEFAULT_SELECT_LINE_COLOR = QColor(255, 255, 255)
 DEFAULT_SELECT_FILL_COLOR = QColor(0, 128, 255, 155)
 DEFAULT_VERTEX_FILL_COLOR = QColor(0, 255, 0, 255)
 DEFAULT_HVERTEX_FILL_COLOR = QColor(255, 0, 0)
-
+FISRT_VERTEX_FILL_COLOR = QColor(255, 0, 255, 255)
+SECOND_VERTEX_FILL_COLOR = QColor(0, 0, 255, 255)
 
 class Shape(object):
     P_SQUARE, P_ROUND = range(2)
@@ -31,7 +32,10 @@ class Shape(object):
     select_line_color = DEFAULT_SELECT_LINE_COLOR
     select_fill_color = DEFAULT_SELECT_FILL_COLOR
     vertex_fill_color = DEFAULT_VERTEX_FILL_COLOR
+    vertex_fill_check_color = DEFAULT_FILL_COLOR
     hvertex_fill_color = DEFAULT_HVERTEX_FILL_COLOR
+    first_vertex_fill_color = FISRT_VERTEX_FILL_COLOR
+    second_vertex_fill_color = SECOND_VERTEX_FILL_COLOR
     point_type = P_ROUND
     point_size = 8
     scale = 1.0
@@ -110,11 +114,25 @@ class Shape(object):
             painter.drawPath(line_path)
             painter.drawPath(vrtx_path)
             painter.fillPath(vrtx_path, self.vertex_fill_color)
+
+            # add for color first and second point in polygon
+            # if self._shapetype == 'Polygon':
+            #     self.reFillVertex(painter)
+
             if self.fill:
                 color = self.select_fill_color if self.selected else self.fill_color
                 painter.fillPath(line_path, color)
 
             #self.drawRotation(painter)
+
+    def reFillVertex(self, painter):
+        vrtx_path = QPainterPath()
+        self.drawVertex(vrtx_path, 0)
+        painter.fillPath(vrtx_path, self.first_vertex_fill_color)
+        vrtx_path = QPainterPath()
+        self.drawVertex(vrtx_path, 1)
+        painter.fillPath(vrtx_path, self.second_vertex_fill_color)
+
 
     def drawVertex(self, path, i):
         d = self.point_size / self.scale
