@@ -670,6 +670,7 @@ class MainWindow(QMainWindow, WindowMixin):
             filename = self.mImgList[currIndex]
             if filename:
                 self.loadFile(filename)
+        self.toggleCheckMode(self.checkValue)
 
     # React to canvas signals.
     def shapeSelectionChanged(self, selected=False):
