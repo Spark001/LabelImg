@@ -398,7 +398,6 @@ class Canvas(QWidget):
                 self.calculateOffsets(shape, point)
                 break
 
-
     def calculateOffsets(self, shape, point):
         rect = shape.boundingRect()
         x1 = rect.x() - point.x()
@@ -453,6 +452,7 @@ class Canvas(QWidget):
         dp = pos - self.prevPoint
         if dp:
             shape.moveBy(dp)
+            #self.constrainShape(shape)
             self.prevPoint = pos
             return True
         return False
@@ -574,6 +574,8 @@ class Canvas(QWidget):
             #return
 
         self.current.close()
+        # add for boundary
+        #self.constrainShape(self.current)
         self.shapes.append(self.current)
         self.current = None
         self.setHiding(False)

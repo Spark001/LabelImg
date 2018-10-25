@@ -43,9 +43,11 @@ class LabelFile(object):
                                  imageShape, localImgPath=imagePath)
         writer.verified = self.verified
 
+        w, h = image.width(), image.height()
         for shape in shapes:
             print(shape['type'])
             points = shape['points']
+            self.constrainPoints(points, w, h)
             label = shape['label']
             if shape['type'] == 'Rect':
                 bndbox = LabelFile.convertPoints2BndBox(points)
@@ -60,6 +62,12 @@ class LabelFile(object):
 
         writer.save(targetFile=filename)
         return
+
+    def constrainPoints(self, points, w, h):
+        points[0] = (max(0, min(points[0][0], w-1)), max(0, min(points[0][1], h-1)))
+        points[1] = (max(0, min(points[1][0], w-1)), max(0, min(points[1][1], h-1)))
+        points[2] = (max(0, min(points[2][0], w-1)),  max(0, min(points[2][1], h-1)))
+        points[3] = (max(0, min(points[3][0], w-1)), max(0, min(points[3][1], h-1)))
 
     def toggleVerify(self):
         self.verified = not self.verified
@@ -86,11 +94,11 @@ class LabelFile(object):
         # Martin Kersner, 2015/11/12
         # 0-valued coordinates of BB caused an error while
         # training faster-rcnn object detector.
-        if xmin < 1:
-            xmin = 1
-
-        if ymin < 1:
-            ymin = 1
+        # if xmin < 1:
+        #     xmin = 1
+        #
+        # if ymin < 1:
+        #     ymin = 1
 
         return (int(xmin), int(ymin), int(xmax), int(ymax))
 
