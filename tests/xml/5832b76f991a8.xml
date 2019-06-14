@@ -1,7 +1,7 @@
 <annotation>
   <folder>img</folder>
   <filename>5832b76f991a8</filename>
-  <path>/home/code/yangruyin/codes/LabelImg/tests/img/5832b76f991a8.jpg</path>
+  <path>/home/disk/workspace/LabelImg/tests/img/5832b76f991a8.jpg</path>
   <source>
     <database>Unknown</database>
   </source>
@@ -93,6 +93,18 @@
       <ymin>247</ymin>
       <xmax>625</xmax>
       <ymax>247</ymax>
+    </bndbox>
+  </object>
+  <object>
+    <name>person</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>619</xmin>
+      <ymin>641</ymin>
+      <xmax>780</xmax>
+      <ymax>819</ymax>
     </bndbox>
   </object>
 </annotation>
