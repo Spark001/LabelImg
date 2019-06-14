@@ -1,10 +1,6 @@
-# labelImg
+# labelImg-ChooseTheBest
 
-Label image list by make a class label.
-
-## BUG!!!
-1. É¾³ıÒ»¸öshapeÖ®ºó£¬copyºÍdelete°´Å¥Ã»ÓĞÇĞ»»²»¿Éµã»÷
-2. µ±±ê³öµÄ¿òÊÇÒ»¸öµãÊ±£¬ÒÆ¶¯¿òÊ±²»¿É±£´æ
+Label image list by choosing the best one.
 
 ## Usage
 
@@ -17,26 +13,21 @@ pyrcc5 -o .py .qrc
 
 ### Steps
 
-1. Click 'Change default saved annotation folder' in Menu/File
-2. Click 'Open Dir'
-3. Click 'Create RectBox'
+1. Click 'Open Dir'
+2. Choose the best one by click the radiobutton.
 
-The annotation will be saved to the folder you specify.
+The annotation will be saved to the folder you specify or image folder by default.
 
 ### Hotkeys
 
 |    Keys  |                 Function                 |
 |----------|------------------------------------------|
 | Ctrl + r | Change the default annotation target dir |
-| Ctrl + s | Save                                     |
 | Ctrl + u | open dir                                 |
-| Ctrl + s | Save                                     |
-| Ctrl + d | Copy a bounding box                      |
-| w        | Create a bounding box                    |
+| s        | Save                                     |
 | d        | Next image                               |
 | a        | Previous image                           |
-| Space    | After choosing one label, quick add it   |
 
 
-## Note£º 
-1. ÎÄ¼şÂ·¾¶²»Òª°üº¬ÖĞÎÄ×Ö·û
+## Noteï¼š 
+1. æ–‡ä»¶è·¯å¾„ä¸è¦åŒ…å«ä¸­æ–‡å­—ç¬¦
