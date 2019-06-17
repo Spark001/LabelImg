@@ -478,6 +478,8 @@ class MainWindow(QMainWindow, Window):
 			return True
 		return False
 
+
+
 	def loadLabels(self, labelPath):
 		## label is defined in one english character
 		with open(labelPath, 'r') as f:
@@ -487,6 +489,10 @@ class MainWindow(QMainWindow, Window):
 		index = ord(labels[0])-65
 		self.labelWidget.setstate(index)
 		self.setClean()
+
+	def errorMessage(self, title, message):
+		return QMessageBox.critical(self, title,
+									'<p><b>%s</b></p>%s' % (title, message))
 
 	def status(self, message, delay=5000):
 		self.statusBar().showMessage(message, delay)
