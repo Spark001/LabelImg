@@ -15,3 +15,5 @@ cscope*
 /tests/xml/臉書.xml
 /tests/xml/5832b76f991a8.xml
 /tests/xml/test.xml
+
+.idea/*

@@ -53,7 +53,7 @@ class SingleChoice(QWidget):
 		self.dirty = True
 		if btn.isChecked():
 			self.choice = btn.text()
-			print 'choose the label: {}'.format(self.choice)
+			print ('choose the label: {}'.format(self.choice))
 
 	def resetstate(self):
 		# self.clearFocus()
