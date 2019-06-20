@@ -436,7 +436,6 @@ class MainWindow(QMainWindow, Window):
 
 		unicodeFilePath = u(filePath)
 		# print unicodeFilePath
-		# Tzutalin 20160906 : Add file list and dock to move faster
 		# Highlight the file item
 		if unicodeFilePath and self.fileListWidget.count() > 0:
 			index = self.mImgList.index(unicodeFilePath)
