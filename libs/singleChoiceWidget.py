@@ -13,18 +13,18 @@ class SingleChoice(QWidget):
 
 	toggle = pyqtSignal()
 	
-	def __init__(self, candidateNum,parent=None):
+	def __init__(self, candidateNum, candidateText,parent=None):
 		super(SingleChoice, self).__init__(parent)
 		self.candidateNum = candidateNum
 		self.choice = None
 		self.dirty = False
 		self.buttonGroup = []
-
+		self.text2ind = dict(zip(candidateText, range(candidateNum)))
 		layout = QVBoxLayout()
 
 		## change fixed buttonNum to adaptive
 		for i in xrange(self.candidateNum):
-			btn = QRadioButton(chr(65+i))
+			btn = QRadioButton(candidateText[i])
 			btn.toggled.connect(partial(self.state, btn))
 			layout.addWidget(btn)
 			self.buttonGroup.append(btn)
@@ -52,8 +52,8 @@ class SingleChoice(QWidget):
 		self.toggle.emit()
 		self.dirty = True
 		if btn.isChecked():
-			self.choice = btn.text()
-			print ('choose the label: {}'.format(self.choice))
+			self.choice = self.text2ind[str(btn.text())]
+			print ('choose the label: {}'.format(btn.text()))
 
 	def resetstate(self):
 		# self.clearFocus()
@@ -66,6 +66,6 @@ class SingleChoice(QWidget):
 
 	def setstate(self, i):
 		assert isinstance(i, int)
-		assert i>=0 and i<self.candidateNum
+		assert 0 <= i < self.candidateNum, i
 		btn = self.buttonGroup[i]
 		btn.setChecked(True)

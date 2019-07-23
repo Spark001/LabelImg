@@ -16,4 +16,4 @@ cscope*
 /tests/xml/5832b76f991a8.xml
 /tests/xml/test.xml
 
-.idea/*
+.idea/
