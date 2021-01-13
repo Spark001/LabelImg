@@ -13,6 +13,7 @@ from shape import Shape
 from lib import distance
 import time
 import numpy as np
+import math
 
 CURSOR_DEFAULT = Qt.ArrowCursor
 CURSOR_POINT = Qt.PointingHandCursor
@@ -65,6 +66,11 @@ class Canvas(QWidget):
         self.setMouseTracking(True)
         self.setFocusPolicy(Qt.WheelFocus)
         self.verified = False
+
+        # judge can draw rotate rect
+        self.canDrawRotatedRect = True
+        self.showCenter = False
+        self.canOutOfBounding = True
 
         # create for judging single click or double click
         self.pQTimerSingleClicked = QTimer(self)
@@ -312,6 +318,26 @@ class Canvas(QWidget):
                 self.current._shapetype = 'Rect'
             self.finalise()
 
+    def handleDrawingRBox(self, pos):
+        if self.current and self.current.reachMaxPoints() is False:
+            initPos = self.current[0]
+            minX = initPos.x()
+            minY = initPos.y()
+            targetPos = self.line[1]
+            maxX = targetPos.x()
+            maxY = targetPos.y()
+            self.current.addPoint(QPointF(maxX, minY))
+            self.current.addPoint(targetPos)
+            self.current.addPoint(QPointF(minX, maxY))
+            self.current.angle = 0
+            self.current.isRotated = self.canDrawRotatedRect
+            if initPos.x() == targetPos.x() and initPos.y() == targetPos.y():
+                self.current._shapetype = 'Point'
+            else:
+                self.current._shapetype = 'RBox'
+            self.finalise()
+
+
     def mouseReleaseEvent(self, ev):
         if ev.button() == Qt.RightButton:
             menu = self.menus[bool(self.selectedShapeCopy)]
@@ -333,7 +359,10 @@ class Canvas(QWidget):
             if (time.time() - self.releaseTime)*1000 > 200:   # indicate press-move-release
                 pos = self.transformPos(ev.pos())
                 if self.drawing():
-                    self.handleDrawingRect(pos)
+                    if self.canDrawRotatedRect:
+                        self.handleDrawingRBox(pos)
+                    else:
+                        self.handleDrawingRect(pos)
 
     def endMove(self, copy=False):
         assert self.selectedShape and self.selectedShapeCopy
@@ -410,8 +439,33 @@ class Canvas(QWidget):
         index, shape = self.hVertex, self.hShape
         print(index, shape)
         point = shape[index]
-        if self.outOfPixmap(pos):
-            pos = self.intersectionPoint(point, pos)
+
+        if shape._shapetype != 'Point':
+            # get the initial state of shape, use for direction changed
+            xlast = (shape.points[1].x() + shape.points[2].x()) / 2.
+            ylast = (shape.points[1].y() + shape.points[2].y()) / 2.
+            xstate_prev = xlast - shape.center.x() >= 1e-010
+            ystate_prev = ylast - shape.center.y() >= 1e-010
+
+        if not self.canOutOfBounding and self.outOfPixmap(pos):
+            return
+
+        if shape._shapetype != 'Point':
+            sindex = (index + 2) % 4
+            # get the other 3 points after transformed
+            angle = 0
+            if shape._shapetype == 'RBox':
+                angle = shape.angle
+            p2, p3, p4 = self.getAdjointPoints(angle, shape[sindex], pos, index)
+
+            pcenter = (pos+p3)/2
+            if self.canOutOfBounding and self.outOfPixmap(pcenter):
+                return
+            # if one pixal out of map , do nothing
+            if not self.canOutOfBounding and (self.outOfPixmap(p2) or
+                self.outOfPixmap(p3) or
+                self.outOfPixmap(p4)):
+                    return
 
         shiftPos = pos - point
         shape.moveVertexBy(index, shiftPos)
@@ -420,40 +474,91 @@ class Canvas(QWidget):
            #return
         if shape._shapetype == 'Point':
             return
-        elif shape._shapetype == 'Rect':
-            lindex = (index + 1) % 4
-            rindex = (index + 3) % 4
-            lshift = None
-            rshift = None
+        elif shape._shapetype == 'Rect' or shape._shapetype == 'RBox':
+            lindex = (index + 3) % 4
+            rindex = (index + 1) % 4
+            # shape[sindex] = p3
+            shape[lindex] = p4
+            shape[rindex] = p2
+
+            shape.close()
+            if shape._shapetype == 'RBox':
+                xlast = (shape.points[1].x() + shape.points[2].x()) / 2.
+                ylast = (shape.points[1].y() + shape.points[2].y()) / 2.
+                xstate = xlast - shape.center.x() >= 1e-010
+                ystate = ylast - shape.center.y() >= 1e-010
+                if xstate != xstate_prev or ystate != ystate_prev:
+                    shape.angle = (shape.angle + 180) % 360
+
+    def getAdjointPoints(self, angle, p3, p1, index):
+        # p3 = center
+        # p3 = 2*center-p1
+        theta = - (angle / 180 * math.pi)
+        a1 = math.tan(theta)
+        if (a1 == 0):
             if index % 2 == 0:
-                rshift = QPointF(shiftPos.x(), 0)
-                lshift = QPointF(0, shiftPos.y())
+                p2 = QPointF(p3.x(), p1.y())
+                p4 = QPointF(p1.x(), p3.y())
             else:
-                lshift = QPointF(shiftPos.x(), 0)
-                rshift = QPointF(0, shiftPos.y())
-            shape.moveVertexBy(rindex, rshift)
-            shape.moveVertexBy(lindex, lshift)
+                p4 = QPointF(p3.x(), p1.y())
+                p2 = QPointF(p1.x(), p3.y())
+        else:
+            a3 = a1
+            a2 = - 1/a1
+            a4 = - 1/a1
+            b1 = p1.y() - a1 * p1.x()
+            b2 = p1.y() - a2 * p1.x()
+            b3 = p3.y() - a1 * p3.x()
+            b4 = p3.y() - a2 * p3.x()
+
+            if index % 2 == 0:
+                p2 = self.getCrossPoint(a1, b1, a4, b4)
+                p4 = self.getCrossPoint(a2, b2, a3, b3)
+            else:
+                p4 = self.getCrossPoint(a1, b1, a4, b4)
+                p2 = self.getCrossPoint(a2, b2, a3, b3)
+
+        return p2, p3, p4
+
+    def getCrossPoint(self, a1, b1, a2, b2):
+        x = (b2-b1)/(a1-a2)
+        y = (a1*b2 - a2*b1)/(a1-a2)
+        return QPointF(x, y)
 
     def boundedMoveShape(self, shape, pos):
-        if self.outOfPixmap(pos):
-            return False  # No need to move
-        o1 = pos + self.offsets[0]
-        if self.outOfPixmap(o1):
-            pos -= QPointF(min(0, o1.x()), min(0, o1.y()))
-        o2 = pos + self.offsets[1]
-        if self.outOfPixmap(o2):
-            pos += QPointF(min(0, self.pixmap.width() - o2.x()),
-                           min(0, self.pixmap.height() - o2.y()))
-        # The next line tracks the new position of the cursor
-        # relative to the shape, but also results in making it
-        # a bit "shaky" when nearing the border and allows it to
-        # go outside of the shape's area for some reason. XXX
-        #self.calculateOffsets(self.selectedShape, pos)
-        dp = pos - self.prevPoint
+        if shape.isRotated and self.canOutOfBounding:
+            c = shape.center
+            dp = pos - self.prevPoint
+            dc = c + dp
+            if dc.x() < 0:
+                dp -= QPointF(min(0,dc.x()), 0)
+            if dc.y() < 0:
+                dp -= QPointF(0, min(0,dc.y()))
+            if dc.x() >= self.pixmap.width():
+                dp += QPointF(min(0, self.pixmap.width() - 1  - dc.x()), 0)
+            if dc.y() >= self.pixmap.height():
+                dp += QPointF(0, min(0, self.pixmap.height() - 1 - dc.y()))
+        else:
+            if self.outOfPixmap(pos):
+                return False  # No need to move
+            o1 = pos + self.offsets[0]
+            if self.outOfPixmap(o1):
+                pos -= QPointF(min(0, o1.x()), min(0, o1.y()))
+            o2 = pos + self.offsets[1]
+            if self.outOfPixmap(o2):
+                pos += QPointF(min(0, self.pixmap.width() - o2.x()),
+                               min(0, self.pixmap.height() - o2.y()))
+            # The next line tracks the new position of the cursor
+            # relative to the shape, but also results in making it
+            # a bit "shaky" when nearing the border and allows it to
+            # go outside of the shape's area for some reason. XXX
+            #self.calculateOffsets(self.selectedShape, pos)
+            dp = pos - self.prevPoint
         if dp:
             shape.moveBy(dp)
             #self.constrainShape(shape)
             self.prevPoint = pos
+            shape.close()
             return True
         return False
 
@@ -512,6 +617,10 @@ class Canvas(QWidget):
             if (shape.selected or not self._hideBackround) and self.isVisible(shape):
                 shape.fill = shape.selected or shape == self.hShape
                 shape.paint(p)
+                if shape._shapetype == 'RBox':
+                    shape.paintCenter(p)
+                    shape.paintDirection(p)
+
         if self.current:
             self.current.paint(p)
             self.line.paint(p)
@@ -685,6 +794,36 @@ class Canvas(QWidget):
             self.moveOnePixel('Up')
         elif key == Qt.Key_Down and self.selectedShape:
             self.moveOnePixel('Down')
+        elif key == Qt.Key_Z and self.selectedShape and \
+            self.selectedShape.isRotated and not self.rotateOutOfBound(5):
+            self.selectedShape.rotate(5)
+            self.shapeMoved.emit()
+            self.update()
+        elif key == Qt.Key_X and self.selectedShape and \
+             self.selectedShape.isRotated and not self.rotateOutOfBound(0.5):
+            self.selectedShape.rotate(0.5)
+            self.shapeMoved.emit()
+            self.update()
+        elif key == Qt.Key_C and self.selectedShape and \
+             self.selectedShape.isRotated and not self.rotateOutOfBound(-0.5):
+            self.selectedShape.rotate(-0.5)
+            self.shapeMoved.emit()
+            self.update()
+        elif key == Qt.Key_V and self.selectedShape and \
+             self.selectedShape.isRotated and not self.rotateOutOfBound(-5):
+            self.selectedShape.rotate(-5)
+            self.shapeMoved.emit()
+            self.update()
+        elif key == Qt.Key_O:
+            self.canOutOfBounding = not self.canOutOfBounding
+
+    def rotateOutOfBound(self, angle):
+        if self.canOutOfBounding:
+            return False
+        for i, p in enumerate(self.selectedShape.points):
+            if self.outOfPixmap(self.selectedShape.rotatePoint(p, angle)):
+                return True
+        return False
 
     def moveOnePixel(self, direction):
         # print(self.selectedShape.points)

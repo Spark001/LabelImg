@@ -40,6 +40,7 @@ from toolBar import ToolBar
 from pascal_voc_io import PascalVocReader
 from pascal_voc_io import XML_EXT
 import platform
+import math
 
 __appname__ = 'labelImg'
 
@@ -111,6 +112,7 @@ class MainWindow(QMainWindow, WindowMixin):
         self.mImgList = []
         self.dirname = None
         self.labelHist = []
+        self.maxLabelNum = 100
         self.lastOpenDir = None
 
         self.time_step = 30
@@ -129,20 +131,21 @@ class MainWindow(QMainWindow, WindowMixin):
         self.LABEL_LIST, self.SPLIT_LBALE = 0, 1
         self.labelDialog = None
         self.label_type = self.LABEL_LIST
+        #self.label_type = self.SPLIT_LBALE
         if self.label_type == self.LABEL_LIST:
             self.loadPredefinedClasses()
             # Main widgets and related state.
-            # self.labelDialog = LabelDialog(parent=self, listItem=self.labelHist)
+            #self.labelDialog = LabelDialog(parent=self, listItem=self.labelHist)
         elif self.label_type == self.SPLIT_LBALE:
             self.loadPredefinedClassesSplited()
             # self.labelDialog = SplitLabelDialog(parent=self, predefined=self.labelHist)
 
         # colors
         self.lineColors = {}
+        self.colors = [[1, 0, 1], [0, 0, 1], [0, 1, 1], [0, 1, 0], [1, 1, 0], [1, 0, 0]]  # BGR format
         colorNum = len(self.labelHist)
-        for i in range(colorNum):
-            color = QColor(int(np.random.random() * 255), int(np.random.random() * 255), int(np.random.random() * 255), int(0.5 * 255))
-            self.lineColors[self.labelHist[i]] = color
+
+        self.init_colormaps(colorNum)
 
         self.labelList = QListWidget()
         self.itemsToShapes = {}
@@ -172,7 +175,7 @@ class MainWindow(QMainWindow, WindowMixin):
         # Tzutalin 20160906 : Add file list and dock to move faster
         self.fileListWidget = QListWidget()
         self.fileListWidget.itemDoubleClicked.connect(
-            self.fileitemDoubleClicked)
+                self.fileitemDoubleClicked)
         filelistLayout = QVBoxLayout()
         filelistLayout.setContentsMargins(0, 0, 0, 0)
         filelistLayout.addWidget(self.fileListWidget)
@@ -259,6 +262,8 @@ class MainWindow(QMainWindow, WindowMixin):
 
         create = action('Create\nRectBox', self.createShape,
                         'w', 'new', u'Draw a new Box', enabled=False)
+        createRo = action('Create\nRotatedRBox', self.createRShape,
+                        'r', 'newRo', u'Draw a new RotatedRBox', enabled=False)
         delete = action('Delete\nRectBox', self.deleteSelectedShape,
                         'Delete', 'delete', u'Delete', enabled=False)
         copy = action('&Duplicate\nRectBox', self.copySelectedShape,
@@ -285,12 +290,14 @@ class MainWindow(QMainWindow, WindowMixin):
         help = action('&Tutorial', self.tutorial, 'Ctrl+T', 'help',
                       u'Show demos')
 
+        loadDefault = action('&LoadDefault', self.loadDefaultDir, 'Ctrl+L+T', 'expert', u'Load default dir')
+
         zoom = QWidgetAction(self)
         zoom.setDefaultWidget(self.zoomWidget)
         self.zoomWidget.setWhatsThis(
-            u"Zoom in or out of the image. Also accessible with"
-            " %s and %s from the canvas." % (fmtShortcut("Ctrl+[-+]"),
-                                             fmtShortcut("Ctrl+Wheel")))
+                u"Zoom in or out of the image. Also accessible with"
+                " %s and %s from the canvas." % (fmtShortcut("Ctrl+[-+]"),
+                                                 fmtShortcut("Ctrl+Wheel")))
         self.zoomWidget.setEnabled(False)
 
         zoomIn = action('Zoom &In', partial(self.addZoom, 10),
@@ -337,12 +344,12 @@ class MainWindow(QMainWindow, WindowMixin):
         addActions(labelMenu, (edit, delete))
         self.labelList.setContextMenuPolicy(Qt.CustomContextMenu)
         self.labelList.customContextMenuRequested.connect(
-            self.popLabelListMenu)
+                self.popLabelListMenu)
 
         # Store actions for further handling.
         self.actions = struct(save=save, saveAs=saveAs, open=open, close=close,
                               lineColor=color1, fillColor=color2,
-                              create=create, delete=delete, edit=edit, copy=copy,
+                              create=create, createRo=createRo, delete=delete, edit=edit, copy=copy,
                               createMode=createMode, editMode=editMode, advancedMode=advancedMode,
                               shapeLineColor=shapeLineColor, shapeFillColor=shapeFillColor,
                               zoom=zoom, zoomIn=zoomIn, zoomOut=zoomOut, zoomOrg=zoomOrg,
@@ -361,17 +368,21 @@ class MainWindow(QMainWindow, WindowMixin):
                               onShapesPresent=(saveAs, checkMode, hideAll, showAll))
 
         self.menus = struct(
-            file=self.menu('&File'),
-            edit=self.menu('&Edit'),
-            view=self.menu('&View'),
-            help=self.menu('&Help'),
-            recentFiles=QMenu('Open &Recent'),
-            labelList=labelMenu)
+                file=self.menu('&File'),
+                edit=self.menu('&Edit'),
+                view=self.menu('&View'),
+                help=self.menu('&Help'),
+                Test=self.menu('&Test'),
+                recentFiles=QMenu('Open &Recent'),
+                labelList=labelMenu)
 
         addActions(self.menus.file,
-                   (open, openVideo, opendir, changeSavedir, openAnnotation, self.menus.recentFiles, save, saveAs, close, None,
-                    quit))
+                   (
+                   open, openVideo, opendir, changeSavedir, openAnnotation, self.menus.recentFiles, save, saveAs, close,
+                   None,
+                   quit))
         addActions(self.menus.help, (help,))
+        addActions(self.menus.Test, (loadDefault,))
         addActions(self.menus.view, (
             labels, advancedMode, checkMode, None,
             hideAll, showAll, None,
@@ -392,7 +403,7 @@ class MainWindow(QMainWindow, WindowMixin):
             openVideo,
             opendir, changeSavedir, openNextImg, openPrevImg,
             # verify,
-            save, None, create,
+            save, None, create, createRo,
             # create_parallelogram,
             copy, delete, None,
             zoomIn, zoom, zoomOut, fitWindow, fitWidth)
@@ -493,6 +504,23 @@ class MainWindow(QMainWindow, WindowMixin):
 
     ## Support Functions ##
 
+    def get_color(self, c, x, max):
+        ratio = float(x) / max * 5
+        i = int(np.floor(ratio))
+        j = int(np.ceil(ratio))
+        ratio -= i
+        r = (1 - ratio) * self.colors[i][c] + ratio * self.colors[j][c]
+        return r
+
+    def init_colormaps(self, classnums):
+        for i in range(classnums):
+            offset = i * 123457 % self.maxLabelNum
+            red = self.get_color(2, offset, self.maxLabelNum)
+            green = self.get_color(1, offset, self.maxLabelNum)
+            blue = self.get_color(0, offset, self.maxLabelNum)
+            color = QColor(int(red * 255), int(green * 255), int(blue * 255), int(0.5 * 255))
+            self.lineColors[self.labelHist[i]] = color
+
     def noShapes(self):
         return not self.itemsToShapes
 
@@ -515,7 +543,7 @@ class MainWindow(QMainWindow, WindowMixin):
                 print(self.lineColors[shape.label])
                 shape.line_color = self.lineColors[shape.label]
                 shape.vertex_fill_color = shape.line_color
-                #shape.scale = 1.0
+                # shape.scale = 1.0
             self.canvas.repaint()
         else:
             self.checkValue = False
@@ -523,7 +551,6 @@ class MainWindow(QMainWindow, WindowMixin):
                 shape.line_color = QColor(0, 255, 0, 128)
                 shape.vertex_fill_color = QColor(0, 255, 0, 255)
             self.canvas.repaint()
-
 
     def populateModeActions(self):
         if self.beginner():
@@ -555,6 +582,7 @@ class MainWindow(QMainWindow, WindowMixin):
         self.dirty = False
         self.actions.save.setEnabled(False)
         self.actions.create.setEnabled(True)
+        self.actions.createRo.setEnabled(True)
 
     def toggleActions(self, value=True):
         """Enable/Disable widgets which depend on an opened image."""
@@ -601,10 +629,33 @@ class MainWindow(QMainWindow, WindowMixin):
     def tutorial(self):
         subprocess.Popen([self.screencastViewer, self.screencast])
 
+    def loadDefaultDir(self):
+        self.defaultSaveDir = 'tests/xml'
+        dirpath = str('tests/imgs')
+        self.dirname = dirpath
+        self.filePath = None
+        self.fileListWidget.clear()
+        self.mImgList = self.scanAllImages(dirpath)
+        self.openNextImg()
+        for imgPath in self.mImgList:
+            item = QListWidgetItem(imgPath)
+            self.fileListWidget.addItem(item)
+
+    # create normal rect
     def createShape(self):
         assert self.beginner()
         self.canvas.setEditing(False)
+        self.canvas.canDrawRotatedRect = False
         self.actions.create.setEnabled(False)
+        self.actions.createRo.setEnabled(False)
+
+    # create rotated rect
+    def createRShape(self):
+        assert self.beginner()
+        self.canvas.setEditing(False)
+        self.canvas.canDrawRotatedRect = True
+        self.actions.create.setEnabled(False)
+        self.actions.createRo.setEnabled(False)
 
     def toggleDrawingSensitive(self, drawing=True):
         """In the middle of drawing, toggling between modes should be disabled."""
@@ -615,6 +666,7 @@ class MainWindow(QMainWindow, WindowMixin):
             self.canvas.setEditing(True)
             self.canvas.restoreCursor()
             self.actions.create.setEnabled(True)
+            self.actions.createRo.setEnabled(True)
 
     def toggleDrawMode(self, edit=True):
         self.canvas.setEditing(edit)
@@ -642,7 +694,7 @@ class MainWindow(QMainWindow, WindowMixin):
         for i, f in enumerate(files):
             icon = newIcon('labels')
             action = QAction(
-                icon, '&%d %s' % (i + 1, QFileInfo(f).fileName()), self)
+                    icon, '&%d %s' % (i + 1, QFileInfo(f).fileName()), self)
             action.triggered.connect(partial(self.loadRecent, f))
             menu.addAction(action)
 
@@ -709,10 +761,13 @@ class MainWindow(QMainWindow, WindowMixin):
 
     def loadLabels(self, shapes):
         s = []
-        for label, shapetype,  points, line_color, fill_color in shapes:
+        for label, shapetype, points, line_color, fill_color, angle in shapes:
             shape = Shape(label=label, shapetype=shapetype)
             for x, y in points:
                 shape.addPoint(QPointF(x, y))
+            if shapetype == 'RBox':
+                shape.isRotated = True
+                shape.angle = angle
             shape.close()
             s.append(shape)
             self.addLabel(shape)
@@ -721,8 +776,14 @@ class MainWindow(QMainWindow, WindowMixin):
             else:
                 if label not in self.labelHist:
                     self.labelHist.append(label)
-                    self.lineColors[label] = QColor(int(np.random.random() * 255), int(np.random.random() * 255), int(np.random.random() * 255), int(255))
-                #line_color = QColor(*self.lineColors[label])
+                    classnums = len(self.labelHist)
+                    offset = (classnums-1) * 123457 % self.maxLabelNum
+                    red = self.get_color(2, offset, self.maxLabelNum)
+                    green = self.get_color(1, offset, self.maxLabelNum)
+                    blue = self.get_color(0, offset, self.maxLabelNum)
+                    color = QColor(int(red * 255), int(green * 255), int(blue * 255), int(0.5 * 255))
+                    self.lineColors[label] = color
+                    # line_color = QColor(*self.lineColors[label])
             if fill_color:
                 shape.fill_color = QColor(*fill_color)
         self.canvas.loadShapes(s)
@@ -732,6 +793,7 @@ class MainWindow(QMainWindow, WindowMixin):
         if self.labelFile is None:
             self.labelFile = LabelFile()
             self.labelFile.verified = self.canvas.verified
+
         def format_shape(s):
             return dict(type=s._shapetype,
                         label=s.label,
@@ -739,18 +801,20 @@ class MainWindow(QMainWindow, WindowMixin):
                         if s.line_color != self.lineColor else None,
                         fill_color=s.fill_color.getRgb()
                         if s.fill_color != self.fillColor else None,
-                        points=[(p.x(), p.y()) for p in s.points])
+                        points=[(p.x(), p.y()) for p in s.points],
+                        center=s.center,
+                        angle=s.angle)
 
         shapes = [format_shape(shape) for shape in self.canvas.shapes]
         # Can add differrent annotation formats here
         try:
             if self.usingPascalVocFormat is True:
-                print ('Img: ' + self.filePath + ' -> Its xml: ' + annotationFilePath)
+                print('Img: ' + self.filePath + ' -> Its xml: ' + annotationFilePath)
                 self.labelFile.savePascalVocFormat(annotationFilePath, shapes, self.filePath, self.imageData,
-                                       self.lineColor.getRgb(), self.fillColor.getRgb())
+                                                   self.lineColor.getRgb(), self.fillColor.getRgb())
             else:
                 self.labelFile.save(annotationFilePath, shapes, self.filePath, self.imageData,
-                        self.lineColor.getRgb(), self.fillColor.getRgb())
+                                    self.lineColor.getRgb(), self.fillColor.getRgb())
             return True
         except LabelFileError as e:
             self.errorMessage(u'Error saving label data',
@@ -783,13 +847,13 @@ class MainWindow(QMainWindow, WindowMixin):
 
         position MUST be in global coordinates.
         """
-        if self.label_type == self.LABEL_LIST :
+        if self.label_type == self.LABEL_LIST:
             if len(self.labelHist) > 0:
                 self.labelDialog = LabelDialog(
-                    parent=self, listItem=self.labelHist)
+                        parent=self, listItem=self.labelHist)
             text = self.labelDialog.popUp(text=self.prevLabelText)
         elif self.label_type == self.SPLIT_LBALE:
-            self.labelDialog = SplitLabelDialog(parent=self,predefined=self.labelHist)
+            self.labelDialog = SplitLabelDialog(parent=self, predefined=self.labelHist)
             text = self.labelDialog.popUp(text=self.prevLabelText)
             print(text)
 
@@ -798,7 +862,13 @@ class MainWindow(QMainWindow, WindowMixin):
             if self.label_type == self.LABEL_LIST:
                 if text not in self.labelHist:
                     self.labelHist.append(text)
-                    self.lineColors[text] = QColor(int(np.random.random() * 255), int(np.random.random() * 255), int(np.random.random() * 255), int(255))
+                    classnums = len(self.labelHist)
+                    offset = (classnums-1) * 123457 % self.maxLabelNum
+                    red = self.get_color(2, offset, self.maxLabelNum)
+                    green = self.get_color(1, offset, self.maxLabelNum)
+                    blue = self.get_color(0, offset, self.maxLabelNum)
+                    color = QColor(int(red * 255), int(green * 255), int(blue * 255), int(0.5 * 255))
+                    self.lineColors[text] = color
 
             self.prevLabelText = text
             self.canvas.setLastLabel(text)
@@ -808,6 +878,7 @@ class MainWindow(QMainWindow, WindowMixin):
             if self.beginner():  # Switch to edit mode.
                 self.canvas.setEditing(True)
                 self.actions.create.setEnabled(True)
+                self.actions.createRo.setEnabled(True)
             else:
                 self.actions.editMode.setEnabled(True)
             self.setDirty()
@@ -906,7 +977,7 @@ class MainWindow(QMainWindow, WindowMixin):
             if self.usingPascalVocFormat is True and \
                             self.defaultSaveDir is not None:
                 basename = os.path.basename(
-                    os.path.splitext(self.filePath)[0]) + XML_EXT
+                        os.path.splitext(self.filePath)[0]) + XML_EXT
                 xmlPath = os.path.join(self.defaultSaveDir, basename)
                 self.loadPascalXMLByFilename(xmlPath)
 
@@ -965,7 +1036,7 @@ class MainWindow(QMainWindow, WindowMixin):
         s['recentFiles'] = self.recentFiles
         s['advanced'] = not self._beginner
         if self.defaultSaveDir is not None and len(self.defaultSaveDir) > 1:
-            s['savedir'] = str(self.defaultSaveDir)
+            s['savedir'] = self.defaultSaveDir
         else:
             s['savedir'] = ""
 
@@ -995,14 +1066,15 @@ class MainWindow(QMainWindow, WindowMixin):
 
     def changeSavedir(self, _value=False):
         if self.defaultSaveDir is not None:
-            path = str(self.defaultSaveDir)
+            path = self.defaultSaveDir
         else:
             path = '.'
 
-        dirpath = str(QFileDialog.getExistingDirectory(self,
+        # unicode path
+        dirpath = QFileDialog.getExistingDirectory(self,
                                                        '%s - Save to the directory' % __appname__, path,
                                                        QFileDialog.ShowDirsOnly
-                                                       | QFileDialog.DontResolveSymlinks))
+                                                       | QFileDialog.DontResolveSymlinks)
 
         if dirpath is not None and len(dirpath) > 1:
             self.defaultSaveDir = dirpath
@@ -1022,6 +1094,7 @@ class MainWindow(QMainWindow, WindowMixin):
 
         path = os.path.dirname(u(self.filePath)) \
             if self.filePath else '.'
+
         if self.usingPascalVocFormat:
             formats = ['*.%s' % str(fmt).lower()
                        for fmt in QImageReader.supportedImageFormats()]
@@ -1049,15 +1122,15 @@ class MainWindow(QMainWindow, WindowMixin):
         print(videofile)
         import cv2
         import os.path as osp
-        videodir,videoname = osp.split(videofile)
+        videodir, videoname = osp.split(videofile)
         videoname_noext = videoname.split('.')[0]
         out_path = osp.join(videodir, videoname_noext)
         if not osp.exists(out_path):
             os.mkdir(out_path)
         jpegdir = osp.join(out_path, 'JPEGImages')
         annodir = osp.join(out_path, 'Annotations')
-        if not osp.exists(jpegdir):os.mkdir(jpegdir)
-        if not osp.exists(annodir):os.mkdir(annodir)
+        if not osp.exists(jpegdir): os.mkdir(jpegdir)
+        if not osp.exists(annodir): os.mkdir(annodir)
 
         # read video
         cap = cv2.VideoCapture(videofile)
@@ -1115,9 +1188,9 @@ class MainWindow(QMainWindow, WindowMixin):
         dirpath = u(QFileDialog.getExistingDirectory(self,
                                                      '%s - Open Directory' % __appname__, path, QFileDialog.ShowDirsOnly
                                                      | QFileDialog.DontResolveSymlinks))
-        dirpath = str(dirpath)
+        #dirpath = str(dirpath)
 
-        if dirpath is '': # which the user is not choose the directory
+        if dirpath is '':  # which the user is not choose the directory
             dirpath = self.lastOpenDir
 
         if dirpath is not None and len(dirpath) > 1:
@@ -1204,13 +1277,12 @@ class MainWindow(QMainWindow, WindowMixin):
             self.loadFile(filename)
 
     def saveFile(self, _value=False):
-        if self.defaultSaveDir is not None and len(str(self.defaultSaveDir)):
+        if self.defaultSaveDir is not None and len(self.defaultSaveDir):
             # print('handle the image:' + self.filePath)
             imgFileName = os.path.basename(self.filePath)
             savedFileName = os.path.splitext(
-                imgFileName)[0] + LabelFile.suffix
-            savedPath = os.path.join(
-                str(self.defaultSaveDir), savedFileName)
+                    imgFileName)[0] + LabelFile.suffix
+            savedPath = os.path.join(self.defaultSaveDir, savedFileName)
             self._saveFile(savedPath)
         else:
             self._saveFile(self.filePath if self.labelFile
@@ -1286,7 +1358,7 @@ class MainWindow(QMainWindow, WindowMixin):
     def deleteSelectedShape(self):
         self.remLabel(self.canvas.deleteSelected())
         self.setDirty()
-        if self.noShapes():# or True:
+        if self.noShapes():  # or True:
             for action in self.actions.onShapesPresent:
                 action.setEnabled(False)
 
@@ -1317,7 +1389,7 @@ class MainWindow(QMainWindow, WindowMixin):
 
     def loadPredefinedClasses(self):
         predefined_classes_path = os.path.join(
-            'data', 'predefined_classes.txt')
+                'data', 'predefined_classes.txt')
         if os.path.exists(predefined_classes_path) is True:
             with codecs.open(predefined_classes_path, 'r', 'utf8') as f:
                 for line in f:
@@ -1329,7 +1401,7 @@ class MainWindow(QMainWindow, WindowMixin):
 
     def loadPredefinedClassesSplited(self):
         predefined_classes_path = os.path.join(
-            'data', 'predefined_classes.dat')
+                'data', 'predefined_classes.dat')
         from collections import OrderedDict
         self.labelHist = OrderedDict()
         with open(predefined_classes_path, 'r') as f:
@@ -1343,6 +1415,7 @@ class MainWindow(QMainWindow, WindowMixin):
     def loadPascalXMLByFilename(self, xmlPath):
         if self.filePath is None:
             return
+
         if os.path.isfile(xmlPath) is False:
             return
 
@@ -1378,7 +1451,7 @@ class Settings(object):
             else:
                 try:
                     method = getattr(QVariant, re.sub(
-                        '^Q', 'to', t.__name__, count=1))
+                            '^Q', 'to', t.__name__, count=1))
                     return method(value)
                 except AttributeError as e:
                     # print(e)
@@ -1420,4 +1493,4 @@ def main(argv):
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
 
-#pyinstaller -n labelSTaction labelImg.py -p ./libs -w
+    # pyinstaller -n labelSTaction labelImg.py -p ./libs -w

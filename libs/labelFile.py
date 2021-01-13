@@ -10,6 +10,7 @@ from base64 import b64encode, b64decode
 from pascal_voc_io import PascalVocWriter
 import os.path
 import sys
+import math
 
 
 class LabelFileError(Exception):
@@ -59,15 +60,16 @@ class LabelFile(object):
                 polygon = LabelFile.convertPoints2Polygon(points)
                 writer.addPolygon(polygon[0], polygon[1], polygon[2], polygon[3], polygon[4], polygon[5],
                                   polygon[6], polygon[7], label, 'Polygon')
+            elif shape['type'] == 'RBox':
+                rbox = LabelFile.convertPoints2RBox(shape)
+                writer.addRBox(rbox[0], rbox[1], rbox[2], rbox[3], rbox[4], label, 'RBox')
 
         writer.save(targetFile=filename)
         return
 
     def constrainPoints(self, points, w, h):
-        points[0] = (max(0, min(points[0][0], w-1)), max(0, min(points[0][1], h-1)))
-        points[1] = (max(0, min(points[1][0], w-1)), max(0, min(points[1][1], h-1)))
-        points[2] = (max(0, min(points[2][0], w-1)),  max(0, min(points[2][1], h-1)))
-        points[3] = (max(0, min(points[3][0], w-1)), max(0, min(points[3][1], h-1)))
+        for i in range(len(points)):
+            points[i] = (max(0, min(points[i][0], w-1)), max(0, min(points[i][1], h-1)))
 
     def toggleVerify(self):
         self.verified = not self.verified
@@ -113,3 +115,26 @@ class LabelFile(object):
         x4 = points[3][0]
         y4 = points[3][1]
         return (int(x1), int(y1), int(x2), int(y2), int(x3), int(y3), int(x4), int(y4))
+
+    @staticmethod
+    def convertPoints2RBox(shape):
+        points = shape['points']
+        center = shape['center']
+        angle = shape['angle']
+
+        cx = center.x()
+        cy = center.y()
+
+        w = math.sqrt((points[0][0]-points[1][0]) ** 2 +
+            (points[0][1]-points[1][1]) ** 2)
+
+        h = math.sqrt((points[2][0]-points[1][0]) ** 2 +
+            (points[2][1]-points[1][1]) ** 2)
+
+        angle = angle % 360
+
+        return (round(cx,4), round(cy,4), round(w,4), round(h,4), round(angle,6))
+
+
+
+

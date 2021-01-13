@@ -6,6 +6,7 @@ from xml.etree import ElementTree
 from xml.etree.ElementTree import Element, SubElement
 from lxml import etree
 import codecs
+import math
 
 XML_EXT = '.xml'
 ENCODING = 'utf-8'
@@ -75,6 +76,7 @@ class PascalVocWriter:
 
     def addPoint(self, x, y, name, type):
         point = {'x': int(x), 'y': int(y)}
+        # point = {'x': x, 'y': y}
         point['name'] = name
         point['type'] = type
         self.boxlist.append(point)
@@ -84,6 +86,12 @@ class PascalVocWriter:
         polygon['name'] = name
         polygon['type'] = type
         self.boxlist.append(polygon)
+
+    def addRBox(self, cx, cy, w, h, angle, name, type):
+        rbox = {'cx': cx, 'cy': cy, 'w': w, 'h': h, 'angle': angle}
+        rbox['name'] = name
+        rbox['type'] = type
+        self.boxlist.append(rbox)
 
     def appendObjects(self, top):
         for each_object in self.boxlist:
@@ -134,7 +142,18 @@ class PascalVocWriter:
                 x4.text = str(each_object['x4'])
                 y4 = SubElement(polygon, 'y4')
                 y4.text = str(each_object['y4'])
-
+            elif each_object['type'] == 'RBox':
+                rbox = SubElement(object_item, 'rbox')
+                cx = SubElement(rbox, 'cx')
+                cx.text = str(each_object['cx'])
+                cy = SubElement(rbox, 'cy')
+                cy.text = str(each_object['cy'])
+                w = SubElement(rbox, 'w')
+                w.text = str(each_object['w'])
+                h = SubElement(rbox, 'h')
+                h.text = str(each_object['h'])
+                angle = SubElement(rbox, 'angle')
+                angle.text = str(each_object['angle'])
 
     def save(self, targetFile=None):
         root = self.genXML()
@@ -164,32 +183,62 @@ class PascalVocReader:
         return self.shapes
 
     def addBndBox(self, label, bndbox):
-        xmin = int(float(bndbox.find('xmin').text))
-        ymin = int(float(bndbox.find('ymin').text))
-        xmax = int(float(bndbox.find('xmax').text))
-        ymax = int(float(bndbox.find('ymax').text))
+        xmin = float(bndbox.find('xmin').text)
+        ymin = float(bndbox.find('ymin').text)
+        xmax = float(bndbox.find('xmax').text)
+        ymax = float(bndbox.find('ymax').text)
         points = [(xmin, ymin), (xmax, ymin), (xmax, ymax), (xmin, ymax)]
-        self.shapes.append((label, 'Rect', points, None, None))
+        self.shapes.append((label, 'Rect', points, None, None, None))
 
     def addPoint(self, label, point):  #save as bndbox
-        xmin = int(point.find('x').text)
-        ymin = int(point.find('y').text)
+        xmin = float(point.find('x').text)
+        ymin = float(point.find('y').text)
+        # xmin = float(point.find('x').text)
+        # ymin = float(point.find('y').text)
         xmax = xmin
         ymax = ymin
         points = [(xmin, ymin), (xmax, ymin), (xmax, ymax), (xmin, ymax)]
-        self.shapes.append((label, 'Point', points, None, None))
+        self.shapes.append((label, 'Point', points, None, None, None))
 
     def addPolygon(self, label, polygon):
-        x1 = int(float(polygon.find('x1').text))
-        y1 = int(float(polygon.find('y1').text))
-        x2 = int(float(polygon.find('x2').text))
-        y2 = int(float(polygon.find('y2').text))
-        x3 = int(float(polygon.find('x3').text))
-        y3 = int(float(polygon.find('y3').text))
-        x4 = int(float(polygon.find('x4').text))
-        y4 = int(float(polygon.find('y4').text))
+        x1 = float(polygon.find('x1').text)
+        y1 = float(polygon.find('y1').text)
+        x2 = float(polygon.find('x2').text)
+        y2 = float(polygon.find('y2').text)
+        x3 = float(polygon.find('x3').text)
+        y3 = float(polygon.find('y3').text)
+        x4 = float(polygon.find('x4').text)
+        y4 = float(polygon.find('y4').text)
         points = [(x1, y1), (x2, y2), (x3, y3), (x4, y4)]
-        self.shapes.append((label, 'Polygon', points, None, None))
+        self.shapes.append((label, 'Polygon', points, None, None, None))
+
+    def addRBox(self, label, rbox):
+        cx = float(rbox.find('cx').text)
+        cy = float(rbox.find('cy').text)
+        w = float(rbox.find('w').text)
+        h = float(rbox.find('h').text)
+        angle = float(rbox.find('angle').text)
+
+        direction = angle / 180 * math.pi
+
+        p1x, p1y = self.rotatePoint(cx, cy, cx - w/2, cy - h/2, direction)
+        p2x, p2y = self.rotatePoint(cx, cy, cx + w/2, cy - h/2, direction)
+        p3x, p3y = self.rotatePoint(cx, cy, cx + w/2, cy + h/2, direction)
+        p4x, p4y = self.rotatePoint(cx, cy, cx - w/2, cy + h/2, direction)
+
+        points = [(p1x, p1y), (p2x, p2y), (p3x, p3y), (p4x, p4y)]
+
+        self.shapes.append((label, 'RBox', points, None, None, angle))
+
+    def rotatePoint(self, xc, yc, xp, yp, theta):
+        xoff = xp-xc
+        yoff = yp-yc
+        cosTheta = math.cos(theta)
+        sinTheta = math.sin(theta)
+        pResx = cosTheta * xoff + sinTheta * yoff
+        pResy = - sinTheta * xoff + cosTheta * yoff
+        # pRes = (xc + pResx, yc + pResy)
+        return xc+pResx, yc+pResy
 
     def parseXML(self):
         assert self.filepath.endswith('.xml'), "Unsupport file format"
@@ -210,6 +259,10 @@ class PascalVocReader:
                 polygon = object_iter.find('polygon')
                 label = object_iter.find('name').text
                 self.addPolygon(label, polygon)
+            elif object_iter.find('rbox') is not None:
+                rbox = object_iter.find('rbox')
+                label = object_iter.find('name').text
+                self.addRBox(label, rbox)
         return True
 
 

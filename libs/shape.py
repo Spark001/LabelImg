@@ -10,7 +10,9 @@ except ImportError:
     from PyQt4.QtCore import *
 
 from lib import distance
+import math
 
+# QColor for (r, g, b, alpha)
 DEFAULT_LINE_COLOR = QColor(0, 255, 0, 128)
 DEFAULT_FILL_COLOR = QColor(255, 0, 0, 128)
 DEFAULT_SELECT_LINE_COLOR = QColor(255, 255, 255)
@@ -40,11 +42,15 @@ class Shape(object):
     point_size = 8
     scale = 1.0
 
-    def __init__(self, label=None, shapetype='Rect', line_color=None):
+    def __init__(self, label=None, shapetype='Rect', line_color=None, angle=None, center=None, isRotated=False):
         self.label = label
         self.points = []
         self.fill = False
         self.selected = False
+
+        self.angle = 0
+        self.center = None
+        self.isRotated = isRotated
 
         self._highlightIndex = None
         self._highlightMode = self.NEAR_VERTEX
@@ -63,7 +69,26 @@ class Shape(object):
             # is used for drawing the pending line a different color.
             self.line_color = line_color
 
+    def rotate(self, angle):
+        for i, p in enumerate(self.points):
+            self.points[i] = self.rotatePoint(p, angle)
+        self.angle += angle
+        self.angle = self.angle % 360
+
+    def rotatePoint(self, p, angle):
+        theta = angle / 180 * math.pi
+        order = p-self.center
+        cosTheta = math.cos(theta)
+        sinTheta = math.sin(theta)
+        pResx = cosTheta * order.x() + sinTheta * order.y()
+        pResy = - sinTheta * order.x() + cosTheta * order.y()
+        pRes = QPointF(self.center.x() + pResx, self.center.y() + pResy)
+        return pRes
+
     def close(self):
+        if self._shapetype != 'Point' and len(self.points) == 4:
+            self.center = QPointF((self.points[0].x()+self.points[2].x()) / 2, (self.points[0].y()+self.points[2].y()) / 2)
+        # judge the direction changed
         self._closed = True
 
     def reachMaxPoints(self):
@@ -116,8 +141,8 @@ class Shape(object):
             painter.fillPath(vrtx_path, self.vertex_fill_color)
 
             # add for color first and second point in polygon
-            # if self._shapetype == 'Polygon':
-            #     self.reFillVertex(painter)
+            if self._shapetype in ['Polygon', 'RBox']:
+                self.reFillVertex(painter)
 
             if self.fill:
                 color = self.select_fill_color if self.selected else self.fill_color
@@ -125,14 +150,47 @@ class Shape(object):
 
             #self.drawRotation(painter)
 
-    def reFillVertex(self, painter):
-        vrtx_path = QPainterPath()
-        self.drawVertex(vrtx_path, 0)
-        painter.fillPath(vrtx_path, self.first_vertex_fill_color)
-        vrtx_path = QPainterPath()
-        self.drawVertex(vrtx_path, 1)
-        painter.fillPath(vrtx_path, self.second_vertex_fill_color)
+    def paintCenter(self, painter):
+        if self.center is not None:
+            center_path = QPainterPath()
+            d = self.point_size / self.scale
+            center_path.addRect(self.center.x() - d / 2, self.center.y() - d / 2, d, d)
+            painter.drawPath(center_path)
+            if self.isRotated:
+                painter.fillPath(center_path, self.vertex_fill_color)
+            else:
+                painter.fillPath(center_path, QColor(0, 0, 0))
 
+    def paintDirection(self, painter):
+        if self.center is not None:
+            direct_path = QPainterPath()
+            src = QPointF(self.center.x(), self.center.y())
+            xlast = (self.points[1].x() + self.points[2].x()) / 2.
+            ylast = (self.points[1].y() + self.points[2].y()) / 2.
+            dst = QPointF(xlast, ylast)
+            direct_path.moveTo(src)
+            direct_path.lineTo(dst)
+            pen = QPen()
+            pen.setColor(QColor(255, 0, 0, 128))
+            pen.setStyle(Qt.DashLine)
+            painter.setPen(pen)
+            painter.drawPath(direct_path)
+
+    def reFillVertex(self, painter):
+        if self._shapetype == 'Polygon':
+            vrtx_path = QPainterPath()
+            self.drawVertex(vrtx_path, 0)
+            painter.fillPath(vrtx_path, self.first_vertex_fill_color)
+            vrtx_path = QPainterPath()
+            self.drawVertex(vrtx_path, 1)
+            painter.fillPath(vrtx_path, self.second_vertex_fill_color)
+        elif self._shapetype == 'RBox':
+            vrtx_path = QPainterPath()
+            self.drawVertex(vrtx_path, 1)
+            painter.fillPath(vrtx_path, self.first_vertex_fill_color)
+            vrtx_path = QPainterPath()
+            self.drawVertex(vrtx_path, 2)
+            painter.fillPath(vrtx_path, self.second_vertex_fill_color)
 
     def drawVertex(self, path, i):
         d = self.point_size / self.scale

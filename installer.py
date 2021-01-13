@@ -11,6 +11,7 @@
 from PyInstaller.__main__ import run
 
 # -F: pack to a single exe file
+# -D: pack to a folder
 # -w: without console
 # --path: dependencies
 # --icon: icon
@@ -18,8 +19,14 @@ from PyInstaller.__main__ import run
 # --clean: clean temp files
 
 if __name__ == '__main__':
-    opts=['-F', '-w', '--paths=C:/ProgramData/Anaconda2/envs/labelimg-installer3.5/Lib/site-packages/PyQt5/',
-          '--paths=C:/ProgramData/Anaconda2/envs/labelimg-installer3.5/Lib/site-packages/PyQt5/plugins/',
+    # for single exe file
+    opts_single=['-F', '-w', '--paths=C:/ProgramData/Anaconda2/envs/labelimg-installer3.5/Lib/site-packages/PyQt5/Qt',
+          '--paths=C:/ProgramData/Anaconda2/envs/labelimg-installer3.5/Lib/site-packages/PyQt5/Qt/plugins/',
           '--paths=./libs', 'labelImg.py']
 
-    run(opts)
+    # for folder
+    opts_folder=['-D', '-w', '--paths=C:/ProgramData/Anaconda2/envs/labelimg-installer3.5/Lib/site-packages/PyQt5/Qt',
+          '--paths=C:/ProgramData/Anaconda2/envs/labelimg-installer3.5/Lib/site-packages/PyQt5/Qt/plugins/',
+          '--paths=./libs', 'labelImg.py',
+          '--distpath=./dist/labelRBox20210112-folder/']
+    run(opts_folder)
