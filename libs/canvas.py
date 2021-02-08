@@ -115,6 +115,39 @@ class Canvas(QWidget):
     def selectedVertex(self):
         return self.hVertex is not None
 
+    def getAngle(self, center, p1, p2):
+        dx1 = p1.x() - center.x()
+        dy1 = p1.y() - center.y()
+
+        dx2 = p2.x() - center.x()
+        dy2 = p2.y() - center.y()
+
+        c = math.sqrt(dx1 * dx1 + dy1 * dy1) * math.sqrt(dx2 * dx2 + dy2 * dy2)
+        if c == 0: return 0
+        y = (dx1 * dx2 + dy1 * dy2) / c  #向量叉积
+        if y > 1: return 0
+        angle = math.acos(y) / np.pi * 180.
+
+        if (dx1 * dy2 - dx2 * dy1)>0:
+            return angle
+        else:
+            return -angle
+
+    def boundedRotateShape(self, pos):
+        # print("Rotate Shape2")
+        # judge if some vertex is out of pixma
+        index, shape = self.hVertex, self.hShape
+        point = shape[index]
+
+        angle = self.getAngle(shape.center, pos, point)
+        # for i, p in enumerate(shape.points):
+        #     if self.outOfPixmap(shape.rotatePoint(p,angle)):
+        #         # print("out of pixmap")
+        #         return
+        if not self.rotateOutOfBound(angle):
+            shape.rotate(angle)
+            self.prevPoint = pos
+
     def mouseMoveEvent(self, ev):
         """Update line with last point and current coordinates."""
         pos = self.transformPos(ev.pos())
@@ -164,13 +197,18 @@ class Canvas(QWidget):
 
         # Polygon copy moving.
         if Qt.RightButton & ev.buttons():
-            if self.selectedShapeCopy and self.prevPoint:
-                self.overrideCursor(CURSOR_MOVE)
-                self.boundedMoveShape(self.selectedShapeCopy, pos)
+            if self.selectedVertex() and self.selectedShape.isRotated:
+                self.boundedRotateShape(pos)
+                self.shapeMoved.emit()
                 self.repaint()
-            elif self.selectedShape:
-                self.selectedShapeCopy = self.selectedShape.copy()
-                self.repaint()
+            else:
+                if self.selectedShapeCopy and self.prevPoint:
+                    self.overrideCursor(CURSOR_MOVE)
+                    self.boundedMoveShape(self.selectedShapeCopy, pos)
+                    self.repaint()
+                elif self.selectedShape:
+                    self.selectedShapeCopy = self.selectedShape.copy()
+                    self.repaint()
             return
 
         # Polygon/Vertex moving.
@@ -339,7 +377,7 @@ class Canvas(QWidget):
 
 
     def mouseReleaseEvent(self, ev):
-        if ev.button() == Qt.RightButton:
+        if ev.button() == Qt.RightButton and not self.selectedVertex():
             menu = self.menus[bool(self.selectedShapeCopy)]
             self.restoreCursor()
             if not menu.exec_(self.mapToGlobal(ev.pos()))\
