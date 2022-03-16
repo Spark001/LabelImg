@@ -273,7 +273,6 @@ class MainWindow(QMainWindow, WindowMixin):
         advancedMode = action('&Advanced Mode', self.toggleAdvancedMode,
                               'Ctrl+Shift+A', 'expert', u'Switch to advanced mode',
                               checkable=True)
-
         # add for check
         self.checkValue = False
         checkMode = action('&Check Mode', self.toggleCheckMode,
@@ -824,6 +823,7 @@ class MainWindow(QMainWindow, WindowMixin):
     def copySelectedShape(self):
         self.addLabel(self.canvas.copySelectedShape())
         # fix copy and delete
+        self.setDirty()
         self.shapeSelectionChanged(True)
 
     def labelSelectionChanged(self):

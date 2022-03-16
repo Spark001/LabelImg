@@ -267,6 +267,10 @@ class Shape(object):
         shape.selected = self.selected
         shape._closed = self._closed
         shape._shapetype = self._shapetype
+        # add for rotated shape
+        shape.isRotated = self.isRotated
+        shape.angle = self.angle
+        shape.center = self.center
         if self.line_color != Shape.line_color:
             shape.line_color = self.line_color
         if self.fill_color != Shape.fill_color:

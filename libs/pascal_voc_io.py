@@ -255,6 +255,10 @@ class PascalVocReader:
                 point = object_iter.find('point')
                 label = object_iter.find('name').text
                 self.addPoint(label, point)
+            elif object_iter.find('keypoint') is not None:
+                point = object_iter.find('keypoint')
+                label = object_iter.find('name').text
+                self.addPoint(label, point)
             elif object_iter.find('polygon') is not None:
                 polygon = object_iter.find('polygon')
                 label = object_iter.find('name').text
@@ -266,7 +270,8 @@ class PascalVocReader:
         return True
 
 
-# tempParseReader = PascalVocReader('test.xml')
+# tempParseReader = PascalVocReader('../tests/xml/00049.xml')
+# print(tempParseReader)
 # print tempParseReader.getShapes()
 """
 # Test
@@ -275,3 +280,10 @@ tmp.addBndBox(10,10,20,30,'chair')
 tmp.addBndBox(1,1,600,600,'car')
 tmp.save()
 """
+
+
+# root = ElementTree.parse('../tests/xml/00049.xml')
+# size = root.find('size')
+# print(size.find('width'))
+# size.remove(size.find('width'))
+# print(size.find('width'))

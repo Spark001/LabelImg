@@ -28,5 +28,5 @@ if __name__ == '__main__':
     opts_folder=['-D', '-w', '--paths=C:/ProgramData/Anaconda2/envs/labelimg-installer3.5/Lib/site-packages/PyQt5/Qt',
           '--paths=C:/ProgramData/Anaconda2/envs/labelimg-installer3.5/Lib/site-packages/PyQt5/Qt/plugins/',
           '--paths=./libs', 'labelImg.py',
-          '--distpath=./dist/labelRBox20210112-folder/']
+          '--distpath=./dist/labelRBox20210527-folder/']
     run(opts_folder)

@@ -207,7 +207,9 @@ class Canvas(QWidget):
                     self.boundedMoveShape(self.selectedShapeCopy, pos)
                     self.repaint()
                 elif self.selectedShape:
+                    self.overrideCursor(CURSOR_MOVE)
                     self.selectedShapeCopy = self.selectedShape.copy()
+                    self.boundedMoveShape(self.selectedShapeCopy, pos)
                     self.repaint()
             return
 
@@ -377,7 +379,7 @@ class Canvas(QWidget):
 
 
     def mouseReleaseEvent(self, ev):
-        if ev.button() == Qt.RightButton and not self.selectedVertex():
+        if ev.button() == Qt.RightButton and (not self.selectedVertex() or (self.selectedShapeCopy._shapetype == 'Point')):
             menu = self.menus[bool(self.selectedShapeCopy)]
             self.restoreCursor()
             if not menu.exec_(self.mapToGlobal(ev.pos()))\
@@ -414,6 +416,7 @@ class Canvas(QWidget):
             self.repaint()
         else:
             self.selectedShape.points = [p for p in shape.points]
+            self.selectedShape.center = shape.center
         self.selectedShapeCopy = None
 
     def hideBackroundShapes(self, value):
@@ -867,28 +870,44 @@ class Canvas(QWidget):
         # print(self.selectedShape.points)
         if direction == 'Left' and not self.moveOutOfBound(QPointF(-1.0, 0)):
             # print("move Left one pixel")
-            self.selectedShape.points[0] += QPointF(-1.0, 0)
-            self.selectedShape.points[1] += QPointF(-1.0, 0)
-            self.selectedShape.points[2] += QPointF(-1.0, 0)
-            self.selectedShape.points[3] += QPointF(-1.0, 0)
+            if self.selectedShape._shapetype == 'Point':
+                self.selectedShape.points[0] += QPointF(-1.0, 0)
+            else:
+                self.selectedShape.points[0] += QPointF(-1.0, 0)
+                self.selectedShape.points[1] += QPointF(-1.0, 0)
+                self.selectedShape.points[2] += QPointF(-1.0, 0)
+                self.selectedShape.points[3] += QPointF(-1.0, 0)
+                self.selectedShape.center += QPointF(-1.0, 0)
         elif direction == 'Right' and not self.moveOutOfBound(QPointF(1.0, 0)):
             # print("move Right one pixel")
-            self.selectedShape.points[0] += QPointF(1.0, 0)
-            self.selectedShape.points[1] += QPointF(1.0, 0)
-            self.selectedShape.points[2] += QPointF(1.0, 0)
-            self.selectedShape.points[3] += QPointF(1.0, 0)
+            if self.selectedShape._shapetype == 'Point':
+                self.selectedShape.points[0] += QPointF(1.0, 0)
+            else:
+                self.selectedShape.points[0] += QPointF(1.0, 0)
+                self.selectedShape.points[1] += QPointF(1.0, 0)
+                self.selectedShape.points[2] += QPointF(1.0, 0)
+                self.selectedShape.points[3] += QPointF(1.0, 0)
+                self.selectedShape.center += QPointF(1.0, 0)
         elif direction == 'Up' and not self.moveOutOfBound(QPointF(0, -1.0)):
             # print("move Up one pixel")
-            self.selectedShape.points[0] += QPointF(0, -1.0)
-            self.selectedShape.points[1] += QPointF(0, -1.0)
-            self.selectedShape.points[2] += QPointF(0, -1.0)
-            self.selectedShape.points[3] += QPointF(0, -1.0)
+            if self.selectedShape._shapetype == 'Point':
+                self.selectedShape.points[0] += QPointF(0, -1.0)
+            else:
+                self.selectedShape.points[0] += QPointF(0, -1.0)
+                self.selectedShape.points[1] += QPointF(0, -1.0)
+                self.selectedShape.points[2] += QPointF(0, -1.0)
+                self.selectedShape.points[3] += QPointF(0, -1.0)
+                self.selectedShape.center += QPointF(0, -1.0)
         elif direction == 'Down' and not self.moveOutOfBound(QPointF(0, 1.0)):
             # print("move Down one pixel")
-            self.selectedShape.points[0] += QPointF(0, 1.0)
-            self.selectedShape.points[1] += QPointF(0, 1.0)
-            self.selectedShape.points[2] += QPointF(0, 1.0)
-            self.selectedShape.points[3] += QPointF(0, 1.0)
+            if self.selectedShape._shapetype == 'Point':
+                self.selectedShape.points[0] += QPointF(0, 1.0)
+            else:
+                self.selectedShape.points[0] += QPointF(0, 1.0)
+                self.selectedShape.points[1] += QPointF(0, 1.0)
+                self.selectedShape.points[2] += QPointF(0, 1.0)
+                self.selectedShape.points[3] += QPointF(0, 1.0)
+                self.selectedShape.center += QPointF(0, 1.0)
         self.shapeMoved.emit()
         self.repaint()
 
